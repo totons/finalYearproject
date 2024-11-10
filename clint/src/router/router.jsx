@@ -16,6 +16,9 @@ import ShowAllClass from "../component/dashbord/admin/ShowAllClass";
 import UpdateProfile from "../component/dashbord/instactor/UpdateProfile";
 import Profile from "../component/dashbord/instactor/Profile";
 import AllCourse from "../component/dashbord/instactor/AllCourse";
+import ClassPage from "../component/class/ClassPage";
+import SingleClassPage from "../component/class/SingleClassPage";
+
 
 export  const router = createBrowserRouter([
     {
@@ -31,7 +34,14 @@ export  const router = createBrowserRouter([
           path: '/instructor',
           element: <InstructorPage/>,
         },
-
+        {
+          path:'/class',
+          element: <ClassPage/>,
+        },
+        {
+          path:'/class/:id',
+          element: <SingleClassPage/>,
+        },
         {
           path: '/signup',
           element: <Signup/>
@@ -79,7 +89,10 @@ export  const router = createBrowserRouter([
           path: '/dashboard/myClass',
           element:<AllCourse/>,
         },
-        
+        {
+          path: '/dashboard/course',
+          element:<ShowAllClass/>,
+        },
     ]
     }
   ]);

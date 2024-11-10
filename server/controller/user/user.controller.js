@@ -3,6 +3,7 @@ import  bcrypt  from "bcryptjs";
 
 import mongoose from 'mongoose';
 import { Education, User, Work } from '../../model/user/user.model.js';
+import { OTP } from '../../model/otp/otp.model.js';
 
 
 
@@ -193,6 +194,60 @@ export const updateInstructorProfile = async (req, res) => {
   }
 };
 
+//send 
+// export const emailsend=async (req,res)=>{
+//   try{
+
+//     const { email } = req.body;
+//     console.log(email);
+//     const existinguser=await User.findOne({email});
+//     if(!existinguser) {
+//       return res.status(404).json({ message: 'User not found' });
+//     }
+//       // Generate OTP
+//       const otp = Math.floor(1000 + Math.random() * 1000); // 4-digit OTP
+//       const otpExpiry = new Date().getTime() + 120 * 1000; // 2-minute expiry
+  
+//       // Save OTP data
+//       let otpData = new OTP({
+//         email: email,
+//         code: otp,
+//         expiresAt: otpExpiry,
+//       });
+//       await otpData.save();
+    
+//   }catch (error) {
+//     console.error('Error sending email:', error);
+//     res.status(500).json({ message: 'Failed to send email', error });
+//   }
+// }
+
+
+
+//get all instructors her courser isActive true
+
+export const getAllActiveInstructors = async (req, res) => {
+  try {
+    console.log("Fetching active instructors with populated courses...");
+
+    // Fetch all users with the role 'instruct' and isactive set to true, and populate the courses field
+    const instructors = await User.find({ role: 'instruct' })
+      .populate('courses') // This will populate the courses field with course data
+      .select('fullname email image courses'); // Select necessary fields for the response
+
+    // Check if no instructors were found
+    if (instructors.length === 0) {
+      console.log("No active instructors found.");
+      return res.status(404).json({ message: 'No active instructors found' });
+    }
+
+    console.log("Fetched instructors:", instructors);
+    res.json({ instructors });
+  } catch (error) {
+    console.error('Error fetching instructors:', error);
+    res.status(500).json({ message: 'Failed to fetch instructors', error });
+  }
+};
 
 
 

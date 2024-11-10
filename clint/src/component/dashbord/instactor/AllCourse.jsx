@@ -3,7 +3,7 @@ import { AuthContext } from '../../../provider/AuthProvider';
 import axios from 'axios';
 import { getBaseUrl } from '../../../utils/baseUrl';
 import Cookies from 'js-cookie';
-
+import Swal from 'sweetalert2'
 const AllCourse = () => {
     const { user } = useContext(AuthContext);
     console.log(user.courses)
@@ -36,6 +36,7 @@ const AllCourse = () => {
 
     const handleDelete = async (courseId) => {
         console.log("Attempting to delete course with ID:", courseId); // Log the course ID
+       
         try {
             await axios.delete(`${getBaseUrl()}/course/${courseId}`, {
                 headers: {
@@ -43,7 +44,18 @@ const AllCourse = () => {
                 },
             });
             // Filter out the deleted course from the state
+            Swal.fire({
+                position: "center",
+                icon: "success",
+                title: "Your work has been saved",
+                showConfirmButton: false,
+                timer: 1500
+              });
+            
             setCourses(courses.filter(course => course._id !== courseId));
+
+
+
             console.log("Deleted course with ID:", courseId);
         } catch (error) {
             console.error("Error deleting course:", error);

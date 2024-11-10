@@ -1,5 +1,6 @@
 // courseController.js
 
+import mongoose from "mongoose";
 import { Course } from "../../model/course/course.model.js";
 import { User } from "../../model/user/user.model.js";
 
@@ -73,28 +74,33 @@ export const publishCourse = async (req, res) => {
 export const unpublishCourse = async (req, res) => {
     try {
         const { courseId } = req.params;
-        console.log(courseId)
 
-        // Find the course
-        const course = await Course.findById(courseId);
+        // Find the course and populate instructor's work and education experience, courses
+        const course = await Course.findById(courseId).populate('workExperience').populate('courses');
+           
+
         if (!course) {
             return res.status(404).json({ message: 'Course not found!' });
         }
 
-        // Update course status to active
+        // Update course status to inactive
         course.isactive = false;
         await course.save();
 
-        return res.status(200).json({ message: 'Course published successfully!', course });
-    } catch (error) {
-        return res.status(500).json({ message: 'Failed to publish course!', error: error.message });
+        return res.status(200).json(course); // Return the course details including populated fields
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'Server error' });
     }
 };
+
+
+
 
 // Get all courses pending approval (by admin)
 export const getPendingCourses = async (req, res) => {
     try {
-        const pendingCourses = await Course.find({ isactive: false }).populate('instructor');
+        const pendingCourses = await Course.find({ isactive: false }).populate('instructor')
         return res.status(200).json(pendingCourses);
     } catch (error) {
         return res.status(500).json({ message: 'Failed to fetch pending courses!', error: error.message });
@@ -148,7 +154,7 @@ export const enrollStudent = async (req, res) => {
 // Get all courses (optional: for students)
 export const getAllCourses = async (req, res) => {
     try {
-        const courses = await Course.find({ isactive: true }).populate('instructor'); // Get only active courses
+        const courses = await Course.find({ isactive: true }).populate('instructor');
         return res.status(200).json(courses);
     } catch (error) {
         return res.status(500).json({ message: 'Failed to fetch courses!', error: error.message });
@@ -208,6 +214,45 @@ export const deleteCourse = async (req, res) => {
     } catch (error) {
         console.error("Failed to delete course:", error); // Log the error
         return res.status(500).json({ message: 'Failed to delete course!', error });
+    }
+};
+
+
+//get single course by id
+
+
+export const getCourseById = async (req, res) => {
+    try {
+        const { courseId } = req.params;
+        console.log("Received courseId:", courseId);
+
+        // Check if courseId is a valid ObjectID
+        if (!mongoose.Types.ObjectId.isValid(courseId)) {
+            console.error("Invalid course ID format:", courseId);
+            return res.status(400).json({ message: 'Invalid course ID format!' });
+        }
+
+        // Find course by ID and populate instructor, including nested fields
+        const course = await Course.findById(courseId)
+            .populate({
+                path: 'instructor',
+                populate: [
+                    { path: 'workExperience' },
+                    { path: 'educationExperience' }
+                ]
+            });
+
+        console.log("Fetched course object with populated instructor:", course);
+
+        if (!course) {
+            console.error("Course not found for ID:", courseId);
+            return res.status(404).json({ message: 'Course not found!' });
+        }
+
+        return res.status(200).json(course);
+    } catch (error) {
+        console.error("Failed to fetch course:", error);
+        return res.status(500).json({ message: 'Failed to fetch course!', error: error.message });
     }
 };
 
