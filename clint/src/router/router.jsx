@@ -18,6 +18,11 @@ import Profile from "../component/dashbord/instactor/Profile";
 import AllCourse from "../component/dashbord/instactor/AllCourse";
 import ClassPage from "../component/class/ClassPage";
 import SingleClassPage from "../component/class/SingleClassPage";
+import EnrollmentClass from "../component/dashbord/student/EnrollmentClass";
+import ShowAllEnrollStudent from "../component/dashbord/instactor/ShowAllEnrollStudent";
+import AddClass from "../component/dashbord/instactor/AddClass";
+import Classshow from "../component/dashbord/student/Classshow";
+import AddAssignment from "../component/dashbord/instactor/AddAssigment";
 
 
 export  const router = createBrowserRouter([
@@ -93,6 +98,28 @@ export  const router = createBrowserRouter([
           path: '/dashboard/course',
           element:<ShowAllClass/>,
         },
+ {
+          path: '/dashboard/enrollClass',
+          element:<EnrollmentClass/>,
+        },
+
+        {
+          path: '/dashboard/enrollsetudent/:courseId',
+          element:<ShowAllEnrollStudent/>,
+        },
+        {
+          path: '/dashboard/addclass/:courseId',
+          element:<AddClass/>,
+        },
+        {
+          path: '/dashboard/showallclass/:courseId',
+          element:<Classshow/>,
+        },
+        {
+          path: '/dashboard/addassigment/:courseId',
+          element:<AddAssignment/>,
+        },
+        
     ]
     }
   ]);

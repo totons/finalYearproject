@@ -2,7 +2,7 @@ import express from 'express';
 
 import { isAuthenticated } from '../../midelware/user.auth.js';
 import { isInstruct } from '../../midelware/instructor.js';
-import { addCourse, deleteCourse, enrollStudent, getAllCourses, getCourseById, getEnrolledStudents, getPendingCourses, publishCourse, unpublishCourse, updateCourse } from '../../controller/course/course.controller.js';
+import { addCourse, deleteCourse,  getAllCourses, getCourseById,  getEnrolledStudents,  getenrollStudent, getPendingCourses, publishCourse, unpublishCourse, updateCourse } from '../../controller/course/course.controller.js';
 import { upload } from '../../midelware/ImageUplode.js';
 import { isAdmin } from '../../midelware/admin.js';
 
@@ -28,10 +28,10 @@ router.patch('/unpublish/:courseId', isAuthenticated, isAdmin, unpublishCourse);
 router.get('/pending', isAuthenticated, isAdmin, getPendingCourses);
 
 // Route for fetching enrolled students in a specific course
-router.get('/courses/:courseId/students', isAuthenticated, getEnrolledStudents);
+router.get('/courses/:courseId/students', isAuthenticated,isInstruct, getEnrolledStudents);
 
 // Route for enrolling a student in a course
-router.post('/courses/:courseId/enroll', isAuthenticated, enrollStudent);
+router.post('/courses/:courseId/enroll', isAuthenticated, getenrollStudent);
 
 // Route for fetching all active courses (optional: for students)
 router.get('/', getAllCourses);
@@ -42,5 +42,7 @@ router.get('/:courseId', getCourseById);
 router.put('/:courseId',upload.single("imagess"),isAuthenticated,isInstruct ,updateCourse);
 
 router.delete('/:courseId',isAuthenticated,isInstruct ,deleteCourse);
+
+
 
 export default router

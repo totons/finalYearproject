@@ -86,6 +86,13 @@ const userSchema = new mongoose.Schema({
         
     },
 
+    enrolmentCourse: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Course',
+        },
+    ],
+
     courses: [
     {
         type: mongoose.Schema.Types.ObjectId,
@@ -120,12 +127,12 @@ const userSchema = new mongoose.Schema({
     },
     aboutUs: {
         type: String,
-        maxlength: 500, // Optional character limit
-        default: '', // Optional default value
+        maxlength: 500, 
+        default: '', 
     },
     
     
 
-}, { timestamps: true }); // Adds createdAt and updatedAt fields
+}, { timestamps: true }); 
 
 export const User = mongoose.model('User', userSchema);

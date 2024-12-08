@@ -17,11 +17,14 @@ app.use(express.urlencoded({ extended: true }))
 app.use(cookieParser())
 const corsOptions = {
     origin: 'http://localhost:5173', 
-    credentials: true
+    credentials: true,
+    
 }
 app.use(cors(corsOptions));
 
 
+import path from 'path';
+app.use('/dashboard/showallclass/uploads', express.static(path.resolve('uploads')));
 
 
 
@@ -33,12 +36,12 @@ app.get('/', (req, res) => {
 //api
 import userRouter from './router/user/user.router.js'
 import courseRouter from './router/course/course.route.js'
-
+import classandassigmentRouter from './router/classandassigment/classandassigment.route.js'
 
 //route
 app.use("/user",userRouter)
 app.use("/course",courseRouter)
-
+app.use("/api",classandassigmentRouter)
 
 
 

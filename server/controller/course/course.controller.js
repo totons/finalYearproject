@@ -97,6 +97,7 @@ export const unpublishCourse = async (req, res) => {
 
 
 
+
 // Get all courses pending approval (by admin)
 export const getPendingCourses = async (req, res) => {
     try {
@@ -113,7 +114,7 @@ export const getEnrolledStudents = async (req, res) => {
         const { courseId } = req.params;
 
         // Find the course and populate students
-        const course = await Course.findById(courseId).populate('enrolledStudents', 'fullname email');
+        const course = await Course.findById(courseId).populate('enrolledStudents');
         if (!course) {
             return res.status(404).json({ message: 'Course not found!' });
         }
@@ -125,10 +126,10 @@ export const getEnrolledStudents = async (req, res) => {
 };
 
 // Enroll a student in a course
-export const enrollStudent = async (req, res) => {
+export const getenrollStudent = async (req, res) => {
     try {
         const { courseId } = req.params;
-        const studentId = req.user.id; // Assuming user ID from authentication middleware
+        const studentId = req.user.id; // Assuming user ID is extracted from authentication middleware
 
         // Find the course
         const course = await Course.findById(courseId);
@@ -136,17 +137,28 @@ export const enrollStudent = async (req, res) => {
             return res.status(404).json({ message: 'Course not found!' });
         }
 
-        // Check if the student is already enrolled
+        // Find the user
+        const user = await User.findById(studentId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found!' });
+        }
+
+        // Check if the student is already enrolled in the course
         if (course.enrolledStudents.includes(studentId)) {
             return res.status(400).json({ message: 'Student already enrolled in this course!' });
         }
 
-        // Enroll the student
+        // Enroll the student in the course
         course.enrolledStudents.push(studentId);
         await course.save();
 
+        // Add the course to the user's enrolmentCourse array
+        user.enrolmentCourse.push(courseId);
+        await user.save();
+
         return res.status(200).json({ message: 'Student enrolled successfully!', course });
     } catch (error) {
+        console.error('Error enrolling student:', error.message);
         return res.status(500).json({ message: 'Failed to enroll student!', error: error.message });
     }
 };
@@ -255,4 +267,6 @@ export const getCourseById = async (req, res) => {
         return res.status(500).json({ message: 'Failed to fetch course!', error: error.message });
     }
 };
+
+
 

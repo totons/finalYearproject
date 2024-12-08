@@ -36,7 +36,24 @@ const courseSchema = new mongoose.Schema({
         type: Number,
         default: 0,
     },
+    classes: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Class',
+        }
+    ],
+
+    
    
+
+
+    assignments:[
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Assignment',
+        },
+    ],
+
     enrolledStudents: [
         {
             type: mongoose.Schema.Types.ObjectId,

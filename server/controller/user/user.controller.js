@@ -252,6 +252,32 @@ export const getAllActiveInstructors = async (req, res) => {
 
 
 
+export const getEnrolledCourses = async (req, res) => {
+    try {
+        const studentId = req.user.id; // Assuming user ID is extracted from authentication middleware
+
+        // Find the user and populate their enrolled courses
+        const user = await User.findById(studentId).populate('enrolmentCourse');
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found!' });
+        }
+
+        // Return the enrolled courses
+        return res.status(200).json({
+            message: 'Enrolled courses retrieved successfully!',
+            enrolledCourses: user.enrolmentCourse,
+        });
+    } catch (error) {
+        console.error('Error fetching enrolled courses:', error.message);
+        return res.status(500).json({ message: 'Failed to fetch enrolled courses!', error: error.message });
+    }
+};
+
+
+
+
+
 
 
 
