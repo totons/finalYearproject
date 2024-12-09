@@ -66,7 +66,7 @@ const EnrollmentClass = () => {
                     ))}
                 </div>
             ) : (
-                <p className="text-center text-gray-700 mt-4">You are not enrolled in any courses yet.</p>
+                <p className="text-center text-gray-700 mt-4">You are not enrolled in any courses yet. </p>
             )}
         </div>
     );

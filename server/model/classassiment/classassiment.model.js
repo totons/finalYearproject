@@ -66,7 +66,7 @@ const assignmentSchema = new mongoose.Schema({
                 required: true,
             },
             fileUrl: {
-                type: String, // URL of the submitted assignment file
+                type: String, 
                 required: true,
             },
             submittedAt: {

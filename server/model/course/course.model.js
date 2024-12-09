@@ -64,7 +64,12 @@ const courseSchema = new mongoose.Schema({
     isactive:{
         type: Boolean,
         default: false,
+    },
+    rejectstudents:{
+        type: Boolean,
+        default: false,
     }
+
     
 }, { timestamps: true });
 

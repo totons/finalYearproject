@@ -79,6 +79,7 @@ const Classshow = () => {
 console.log("User ID: ", user._id);
 
   const handleSubmissionCheck = (assignmentId) => {
+    
     return classes.some((classItem) =>
       classItem.assignments.some(
         (assignment) =>
@@ -134,7 +135,7 @@ console.log("User ID: ", user._id);
                 </p>
                 <p>
                   <span className="font-medium text-gray-700">Date: </span>
-                  {new Date(classItem.date).toLocaleDateString()}
+                  {new Date(classItem.date).toLocaleString()}
                 </p>
               </div>
 
@@ -180,48 +181,54 @@ console.log("User ID: ", user._id);
                           </p>
 
                           {/* Submission Form */}
-                          {!deadlinePassed && !alreadySubmitted ? (
-                            <form
-                              onSubmit={(e) => {
-                                e.preventDefault();
-                                const fileInput = e.target.file;
-                                if (!fileInput || !fileInput.files[0]) {
-                                  alert("Please select a file to submit.");
-                                  return;
-                                }
+{!deadlinePassed && !alreadySubmitted ? (
+  <form
+    onSubmit={(e) => {
+      e.preventDefault();
+      
+      const fileInput = e.target.elements.file;
+      
+      // Check if file is selected
+      if (!fileInput || !fileInput.files[0]) {
+        alert("Please select a file to submit.");
+        return;
+      }
 
-                                const formData = new FormData();
-                                formData.append("file", fileInput.files[0]);
-                                formData.append("studentId", user._id);
+      // Prepare FormData
+      const formData = new FormData();
+      formData.append("file", fileInput.files[0]);
+      formData.append("studentId", user._id); // Ensure user._id is available
 
-                                handleAssignmentSubmit(assignment._id, formData, courseId);
-                              }}
-                            >
-                              <input
-                                type="file"
-                                name="file"
-                                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                                required
-                              />
-                              <button
-                                type="submit"
-                                className={`mt-4 px-4 py-2 rounded-lg ${
-                                  submittingAssignments[assignment._id]
-                                    ? "bg-gray-500 cursor-not-allowed"
-                                    : alreadySubmitted
-                                    ? "bg-green-500 cursor-not-allowed"
-                                    : "bg-blue-500 hover:bg-blue-600"
-                                } text-white`}
-                                disabled={submittingAssignments[assignment._id] || alreadySubmitted || deadlinePassed}
-                              >
-                                {submittingAssignments[assignment._id] ? "Submitting..." : alreadySubmitted ? "Already Submitted" : "Submit Assignment"}
-                              </button>
-                            </form>
-                          ) : alreadySubmitted ? (
-                            <p className="text-green-500 mt-4">Assignment already submitted!</p>
-                          ) : (
-                            <p className="text-red-500 mt-4">Deadline passed. Cannot submit.</p>
-                          )}
+      // Call your assignment submit handler
+      handleAssignmentSubmit(assignment._id, formData, courseId);
+    }}
+  >
+    <input
+      type="file"
+      name="file"
+      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+      required
+    />
+    <button
+      type="submit"
+      className={`mt-4 px-4 py-2 rounded-lg ${
+        submittingAssignments[assignment._id]
+          ? "bg-gray-500 cursor-not-allowed"
+          : alreadySubmitted
+          ? "bg-green-500 cursor-not-allowed"
+          : "bg-blue-500 hover:bg-blue-600"
+      } text-white`}
+      disabled={submittingAssignments[assignment._id] && alreadySubmitted && deadlinePassed}
+    >
+      {submittingAssignments[assignment._id] ? "Submitting..." : alreadySubmitted ? "Already Submitted" : "Submit Assignment"}
+    </button>
+  </form>
+) : alreadySubmitted ? (
+  <p className="text-green-500 mt-4">Assignment already submitted!</p>
+) : (
+  <p className="text-red-500 mt-4">Deadline passed. Cannot submit.</p>
+)}
+
                         </li>
                       );
                     })}

@@ -23,6 +23,7 @@ import ShowAllEnrollStudent from "../component/dashbord/instactor/ShowAllEnrollS
 import AddClass from "../component/dashbord/instactor/AddClass";
 import Classshow from "../component/dashbord/student/Classshow";
 import AddAssignment from "../component/dashbord/instactor/AddAssigment";
+import UpdateCourse from "../component/dashbord/instactor/UpdateCourse";
 
 
 export  const router = createBrowserRouter([
@@ -119,7 +120,10 @@ export  const router = createBrowserRouter([
           path: '/dashboard/addassigment/:courseId',
           element:<AddAssignment/>,
         },
-        
+        {
+          path:"/dashboard/courses/update/:courseId" ,
+          element:<UpdateCourse/>
+        }        
     ]
     }
   ]);

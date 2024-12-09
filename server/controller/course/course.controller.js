@@ -47,7 +47,7 @@ export const addCourse = async (req, res) => {
 
 
 
-// Approve or publish a course (by admin)
+//publish or reject Approve  a course (by admin)
 export const publishCourse = async (req, res) => {
     try {
         const { courseId } = req.params;

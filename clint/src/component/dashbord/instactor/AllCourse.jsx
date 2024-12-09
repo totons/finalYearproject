@@ -4,13 +4,13 @@ import axios from 'axios';
 import { getBaseUrl } from '../../../utils/baseUrl';
 import Cookies from 'js-cookie';
 import Swal from 'sweetalert2'
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 const AllCourse = () => {
     const { user } = useContext(AuthContext);
     console.log(user.courses)
     const [courses, setCourses] = useState([]);
     const token = Cookies.get('token');
-
+    const navigate=useNavigate()
  
     useEffect(() => {
         const fetchCourses = async () => {
@@ -32,7 +32,7 @@ const AllCourse = () => {
     // Placeholder functions for update and delete actions
     const handleUpdate = (courseId) => {
         console.log("Update course with ID:", courseId);
-        // Logic for updating the course can be added here
+        navigate(`/dashboard/courses/update/${courseId}`);
     };
 
     const handleDelete = async (courseId) => {
@@ -101,12 +101,12 @@ const AllCourse = () => {
                                {
                                 course.isactive==false ?  <>
                                  <td className="p-4 text-center">
-                                    <button
-                                        onClick={() => handleUpdate(course._id)}
-                                        className="bg-yellow-400 text-white px-3 py-1 rounded-md mr-2 hover:bg-yellow-500 transition"
-                                    >
-                                        Update
-                                    </button>
+                                 <button
+            onClick={() => handleUpdate(course._id)}
+            className="bg-yellow-400 text-white px-3 py-1 rounded-md mr-2 hover:bg-yellow-500 transition"
+        >
+            Update
+        </button>
                                     <button
                                         onClick={() => handleDelete(course._id)}
                                         className="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition"
