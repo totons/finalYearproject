@@ -28,7 +28,7 @@ router.patch('/unpublish/:courseId', isAuthenticated, isAdmin, unpublishCourse);
 router.get('/pending', isAuthenticated, isAdmin, getPendingCourses);
 
 // Route for fetching enrolled students in a specific course
-router.get('/courses/:courseId/students', isAuthenticated,isInstruct, getEnrolledStudents);
+router.get('/courses/:courseId/students', isAuthenticated, getEnrolledStudents);
 
 // Route for enrolling a student in a course
 router.post('/courses/:courseId/enroll', isAuthenticated, getenrollStudent);

@@ -9,7 +9,8 @@ const ShowAllEnrollStudent = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const token = Cookies.get('token');
-    console.log(courseId)
+    console.log(students)
+  
 
     useEffect(() => {
         const fetchEnrolledStudents = async () => {
@@ -19,7 +20,8 @@ const ShowAllEnrollStudent = () => {
                         'Authorization': `Bearer ${token}`,
                     },
                 });
-                setStudents(response.data);
+                setStudents(response.data.enrolledStudents);
+                
                 console.log(response.data.students);
             } catch (err) {
                 setError(err.response?.data?.message || 'Failed to fetch enrolled students.');
@@ -61,6 +63,7 @@ const ShowAllEnrollStudent = () => {
                             <th className="px-4 py-2 border text-left">Image</th>
                             <th className="px-4 py-2 border text-left">Full Name</th>
                             <th className="px-4 py-2 border text-left">Email</th>
+                            <th className="px-4 py-2 border text-left">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -75,6 +78,15 @@ const ShowAllEnrollStudent = () => {
                                 </td>
                                 <td className="px-4 py-2">{student.fullname }</td>
                                 <td className="px-4 py-2">{student.email}</td>
+                                <td className="px-4 py-2">
+                    <Link
+                       to={`/dashboard/enrollsetudent/${courseId}/student/${student._id}`}
+                        className="bg-blue-500 text-white px-4 py-2 rounded"
+                    >
+                        
+                        Show Assignments
+                    </Link>
+                </td>
                             </tr>
                         ))}
                     </tbody>

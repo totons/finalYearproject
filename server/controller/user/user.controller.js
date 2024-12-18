@@ -76,7 +76,7 @@ export const registerUser = async (req, res) => {
 
         //check role
         if (user.role !== role) {
-          console.log(`Access denied: Expected role ${user.role}, got ${role}`);
+  
           return res.status(403).json({ message: "Access denied: Invalid role" });
         }
     
@@ -228,7 +228,7 @@ export const updateInstructorProfile = async (req, res) => {
 
 export const getAllActiveInstructors = async (req, res) => {
   try {
-    console.log("Fetching active instructors with populated courses...");
+  
 
     // Fetch all users with the role 'instruct' and isactive set to true, and populate the courses field
     const instructors = await User.find({ role: 'instruct' })
@@ -237,11 +237,11 @@ export const getAllActiveInstructors = async (req, res) => {
 
     // Check if no instructors were found
     if (instructors.length === 0) {
-      console.log("No active instructors found.");
+     
       return res.status(404).json({ message: 'No active instructors found' });
     }
 
-    console.log("Fetched instructors:", instructors);
+  
     res.json({ instructors });
   } catch (error) {
     console.error('Error fetching instructors:', error);
@@ -274,6 +274,39 @@ export const getEnrolledCourses = async (req, res) => {
     }
 };
 
+
+
+
+
+
+export const getSingleUserById = async (req, res) => {
+  try {
+    const { studentId } = req.params;
+
+    // Log the received ID
+    console.log('Received studentId:', studentId);
+
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(studentId)) {
+      console.log('Invalid ID format');
+      return res.status(400).json({ message: 'Invalid user ID format' });
+    }
+
+    // Fetch user
+    const user = await User.findById(studentId);
+
+    if (!user) {
+      console.log(`User not found for ID: ${studentId}`);
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    console.log('User found:', user);
+    return res.status(200).json({ user });
+  } catch (error) {
+    console.error('Error fetching user:', error.message);
+    return res.status(500).json({ message: 'Failed to fetch user', error: error.message });
+  }
+};
 
 
 

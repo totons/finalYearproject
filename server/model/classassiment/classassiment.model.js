@@ -73,6 +73,15 @@ const assignmentSchema = new mongoose.Schema({
                 type: Date,
                 default: Date.now,
             },
+            mark:{
+
+                type: Number,
+                default: 0,
+                
+                
+            },
+           
+           
         },
     ],
 });

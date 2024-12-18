@@ -100,7 +100,12 @@ const userSchema = new mongoose.Schema({
     }
         
     ],
-
+    
+    
+    totalMark: {
+        type: Number,
+        default: 0,
+    },
 
     //instractor
     skills: {
@@ -130,6 +135,8 @@ const userSchema = new mongoose.Schema({
         maxlength: 500, 
         default: '', 
     },
+
+   
     
     
 

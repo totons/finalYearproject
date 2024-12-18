@@ -1,5 +1,5 @@
 import express from 'express';
-import { addAssignment, addClass, getAssignments, getClasses, submitAssignment } from '../../controller/classandassigment/ClassandAssigment.controller.js';
+import { addAssignment, addClass, getAssignments, getClasses, submitAssignment,submitMark } from '../../controller/classandassigment/ClassandAssigment.controller.js';
 
 
 import multer from 'multer';
@@ -37,7 +37,7 @@ router.post(
 
 
 router.get('/:courseId/assignments', getAssignments);
-
+router.patch('/assignments/submit-mark/:submissionId/:studentId', submitMark);
 
 
 

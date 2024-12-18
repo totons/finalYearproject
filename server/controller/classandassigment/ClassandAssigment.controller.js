@@ -1,7 +1,9 @@
 import mongoose from "mongoose";
 import { Assignment, Class } from "../../model/classassiment/classassiment.model.js";
 import { Course } from "../../model/course/course.model.js";
-
+import { User } from "../../model/user/user.model.js";
+import sendEmail from "../../utils/sendEmail.js";
+import classSendEmailTemplate from "../../utils/classSendEmailTemplate.js";
 
 
 export const addClass = async (req, res) => {
@@ -10,7 +12,7 @@ export const addClass = async (req, res) => {
         const { title, description, resourcesLink, classLink, date } = req.body;
 
         // Fetch the course by ID
-        const course = await Course.findById(courseId);
+        const course = await Course.findById(courseId).populate('enrolledStudents'); // Assuming course model has enrolledStudents array
         if (!course) {
             return res.status(404).json({ message: 'Course not found' });
         }
@@ -31,8 +33,30 @@ export const addClass = async (req, res) => {
         // Save the updated course
         await course.save();
 
+        // Send email to all enrolled students
+        if (course.enrolledStudents.length > 0) {
+            const emailPromises = course.enrolledStudents.map(async (student) => {
+                const { email } = student; // Assuming student has email and name fields
+
+                return sendEmail({
+                    sendTo: email,
+                    subject: "New Class Announcement from Online Learning Academy",
+                    html: classSendEmailTemplate({
+                       
+                        title, // Include class title
+                        description,
+                        date,
+                        classLink, // Include class link
+                    }),
+                });
+            });
+
+            // Wait for all emails to be sent
+            await Promise.all(emailPromises);
+        }
+
         res.status(201).json({
-            message: 'Class added successfully',
+            message: 'Class added successfully and emails sent',
             class: newClass, // Return the newly created class
         });
     } catch (error) {
@@ -181,6 +205,82 @@ export const getAssignments = async (req, res) => {
         res.status(500).json({ message: 'Failed to fetch assignments', error: error.message });
     }
 };
+
+
+
+
+
+
+// Controller function to submit mark
+export const submitMark = async (req, res) => {
+    const { submissionId } = req.params;  // Submission ID from URL
+    const { mark } = req.body;  // Mark from the request body
+
+    try {
+        // Validate mark value (check if it's a valid number)
+        if (typeof mark !== 'number' || isNaN(mark)) {
+            return res.status(400).json({ message: 'Invalid mark value. It must be a number.' });
+        }
+
+        console.log('Received mark:', mark);
+
+        // Find the assignment containing the submission
+        const assignment = await Assignment.findOne({
+            'submissions._id': submissionId,
+        });
+
+        if (!assignment) {
+            return res.status(404).json({ message: 'Assignment not found.' });
+        }
+
+        // Find the submission by submissionId
+        const submission = assignment.submissions.find(
+            (sub) => sub._id.toString() === submissionId
+        );
+
+        if (!submission) {
+            return res.status(404).json({ message: 'Submission not found.' });
+        }
+
+        // Update the mark for the submission
+        submission.mark = mark;
+
+        // Save the updated assignment
+        await assignment.save();
+
+        // Find the student and update their total mark directly using `findByIdAndUpdate`
+        const studentId = submission.student;  // Assuming submission has studentId field
+        console.log('Student ID:', studentId);
+
+        // Directly update totalMark in the User collection
+        const student = await User.findById(studentId);
+
+        if (!student) {
+            return res.status(404).json({ message: 'Student not found.' });
+        }
+
+        // Log current totalMark before updating
+        console.log('Current totalMark before update:', student.totalMark);
+
+        // Increment the total marks of the student using findByIdAndUpdate
+        const updatedStudent = await User.findByIdAndUpdate(studentId, {
+            $inc: { totalMark: mark },  // Increment totalMark by the given mark
+        }, { new: true });  // Get the updated document
+
+        // Log the updated totalMark
+        console.log('Updated totalMark:', updatedStudent.totalMark);
+
+        return res.status(200).json({ message: 'Mark submitted successfully.' });
+    } catch (err) {
+        console.error('Error in submitMark:', err);
+        return res.status(500).json({ message: 'Server error' });
+    }
+};
+
+
+
+
+
 
 
 

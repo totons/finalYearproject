@@ -1,5 +1,5 @@
 import express from 'express';
-import { getAllActiveInstructors, getEnrolledCourses, loginUser, loginUserProfile, logout, registerUser, updateInstructorProfile } from '../../controller/user/user.controller.js';
+import { getAllActiveInstructors, getEnrolledCourses, getSingleUserById, loginUser, loginUserProfile, logout, registerUser, updateInstructorProfile } from '../../controller/user/user.controller.js';
 import  {isAuthenticated}  from '../../midelware/user.auth.js';
 
 import { upload } from '../../midelware/ImageUplode.js';
@@ -21,6 +21,8 @@ router.patch('/instructor/:id', isAuthenticated, isInstruct, updateInstructorPro
 router.get('/course', isAuthenticated, getEnrolledCourses);
 // router.post ('/emailsend',emailsend)
 // router.post ('/change-passwoed',changepasswd)
+router.get('/:studentId', getSingleUserById);
+
 
 
 

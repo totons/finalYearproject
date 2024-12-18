@@ -51,7 +51,7 @@ export const addCourse = async (req, res) => {
 export const publishCourse = async (req, res) => {
     try {
         const { courseId } = req.params;
-        console.log(courseId)
+      
 
         // Find the course
         const course = await Course.findById(courseId);
@@ -114,12 +114,20 @@ export const getEnrolledStudents = async (req, res) => {
         const { courseId } = req.params;
 
         // Find the course and populate students
-        const course = await Course.findById(courseId).populate('enrolledStudents');
+        const course = await Course.findById(courseId)
+  .populate('enrolledStudents')
+  .populate({
+    path: 'classes',
+    populate: {
+      path: 'assignments',
+    },
+  });
+
         if (!course) {
             return res.status(404).json({ message: 'Course not found!' });
         }
 
-        return res.status(200).json(course.enrolledStudents);
+        return res.status(200).json(course);
     } catch (error) {
         return res.status(500).json({ message: 'Failed to fetch enrolled students!', error: error.message });
     }
@@ -210,7 +218,7 @@ export const updateCourse = async (req, res) => {
 export const deleteCourse = async (req, res) => {
     try {
         const { courseId } = req.params; // Extracting courseId from request parameters
-        console.log("Received request to delete course with ID:", courseId); // Log the received course ID
+ 
 
         // Find the course by ID
         const course = await Course.findByIdAndDelete(courseId);
@@ -221,7 +229,7 @@ export const deleteCourse = async (req, res) => {
 
         // Delete the course
         
-        console.log("Deleted course with ID:", courseId); // Log successful deletion
+       
         return res.status(200).json({ message: 'Course deleted successfully!' });
     } catch (error) {
         console.error("Failed to delete course:", error); // Log the error
@@ -236,7 +244,7 @@ export const deleteCourse = async (req, res) => {
 export const getCourseById = async (req, res) => {
     try {
         const { courseId } = req.params;
-        console.log("Received courseId:", courseId);
+      
 
         // Check if courseId is a valid ObjectID
         if (!mongoose.Types.ObjectId.isValid(courseId)) {
@@ -254,7 +262,7 @@ export const getCourseById = async (req, res) => {
                 ]
             });
 
-        console.log("Fetched course object with populated instructor:", course);
+       
 
         if (!course) {
             console.error("Course not found for ID:", courseId);
