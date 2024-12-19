@@ -9,6 +9,7 @@ import InstructorInfo from '../InstructorInfo';
 
 const InstructorPage = () => {
     const [instructors, setInstructors] = useState([]);
+    console.log(instructors)
 
     useEffect(() => {
         fetch('http://127.0.0.1:5004/user/ins/')

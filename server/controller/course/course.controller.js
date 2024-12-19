@@ -15,6 +15,7 @@ export const addCourse = async (req, res) => {
         const { title, description, enrollLastDate, skills, price } = req.body; // Destructure request body
         const instructorId = req.user.id; // Assuming instructor ID is populated correctly
         const images = req.file ? req.file.path : null;
+        console.log('Image path:', req.file ? req.file.path : 'No image uploaded');
 
         // Create a new course object
         const newCourse = new Course({
@@ -44,6 +45,8 @@ export const addCourse = async (req, res) => {
         return res.status(500).json({ message: 'Failed to add course!', error: error.message });
     }
 };
+
+
 
 
 

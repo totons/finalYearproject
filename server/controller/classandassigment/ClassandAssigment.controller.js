@@ -211,71 +211,92 @@ export const getAssignments = async (req, res) => {
 
 
 
-// Controller function to submit mark
-export const submitMark = async (req, res) => {
-    const { submissionId } = req.params;  // Submission ID from URL
-    const { mark } = req.body;  // Mark from the request body
-
-    try {
-        // Validate mark value (check if it's a valid number)
-        if (typeof mark !== 'number' || isNaN(mark)) {
-            return res.status(400).json({ message: 'Invalid mark value. It must be a number.' });
+// Controller function to submit markexport const submitMark = async (req, res) => {
+    export const submitMark = async (req, res) => {
+        const { submissionId } = req.params; // সাবমিশন আইডি প্যারামিটার থেকে নেওয়া।
+        const { mark } = req.body; // মার্ক বডি থেকে নেওয়া।
+    
+        // মার্ক চেক করা: ০ থেকে ১০০ এর মধ্যে কিনা
+        if (typeof mark !== 'number' || isNaN(mark) || mark < 0 || mark > 100) {
+            return res.status(400).json({ message: 'মার্ক সঠিক নয়। ০ থেকে ১০০ এর মধ্যে একটি সংখ্যা দিন।' });
         }
-
-        console.log('Received mark:', mark);
-
-        // Find the assignment containing the submission
-        const assignment = await Assignment.findOne({
-            'submissions._id': submissionId,
-        });
-
-        if (!assignment) {
-            return res.status(404).json({ message: 'Assignment not found.' });
+    
+        const session = await mongoose.startSession(); // সেশন শুরু করা।
+        session.startTransaction();
+    
+        try {
+            // অ্যাসাইনমেন্ট এবং কোর্সের তথ্য খুঁজে বের করা।
+            const assignment = await Assignment.findOne({ 'submissions._id': submissionId })
+                .populate({
+                    path: 'class',
+                    populate: { path: 'course' },
+                })
+                .session(session);
+    
+            if (!assignment) {
+                await session.abortTransaction();
+                return res.status(404).json({ message: 'অ্যাসাইনমেন্ট পাওয়া যায়নি।' });
+            }
+    
+            // সাবমিশন খুঁজে বের করা।
+            const submission = assignment.submissions.find(
+                (sub) => sub._id.toString() === submissionId
+            );
+    
+            if (!submission) {
+                await session.abortTransaction();
+                return res.status(404).json({ message: 'সাবমিশন পাওয়া যায়নি।' });
+            }
+    
+            // মার্ক আপডেট করা।
+            submission.mark = mark;
+            await assignment.save({ session });
+    
+            const studentId = submission.student; // শিক্ষার্থীর আইডি।
+            const courseId = assignment.class?.course?._id; // কোর্স আইডি।
+    
+            if (!courseId) {
+                console.error('কোর্স আইডি নেই:', assignment.class?.course);
+                await session.abortTransaction();
+                return res.status(400).json({ message: 'অ্যাসাইনমেন্টে কোর্স আইডি পাওয়া যায়নি।' });
+            }
+    
+            // শিক্ষার্থী খুঁজে বের করা।
+            const student = await User.findById(studentId).session(session);
+            if (!student) {
+                await session.abortTransaction();
+                return res.status(404).json({ message: 'শিক্ষার্থী পাওয়া যায়নি।' });
+            }
+    
+            // শিক্ষার্থীর `courseMarks` আপডেট করা।
+            const courseMarkIndex = student.courseMarks.findIndex(
+                (cm) => cm.course.toString() === courseId.toString()
+            );
+    
+            if (courseMarkIndex !== -1) {
+                // কোর্স ইতোমধ্যে আছে, তাই মার্ক যোগ করা হচ্ছে।
+                student.courseMarks[courseMarkIndex].totalMark += mark;
+            } else {
+                // নতুন কোর্স এবং মার্ক যোগ করা।
+                student.courseMarks.push({ course: courseId, totalMark: mark });
+            }
+    
+            // শিক্ষার্থীর ডেটা সেভ করা।
+            await student.save({ session });
+    
+            await session.commitTransaction();
+            session.endSession();
+    
+            return res.status(200).json({ message: 'মার্ক সফলভাবে জমা হয়েছে।' });
+        } catch (err) {
+            await session.abortTransaction();
+            session.endSession();
+            console.error('submitMark এ ত্রুটি:', err);
+            return res.status(500).json({ message: 'সার্ভার ত্রুটি' });
         }
-
-        // Find the submission by submissionId
-        const submission = assignment.submissions.find(
-            (sub) => sub._id.toString() === submissionId
-        );
-
-        if (!submission) {
-            return res.status(404).json({ message: 'Submission not found.' });
-        }
-
-        // Update the mark for the submission
-        submission.mark = mark;
-
-        // Save the updated assignment
-        await assignment.save();
-
-        // Find the student and update their total mark directly using `findByIdAndUpdate`
-        const studentId = submission.student;  // Assuming submission has studentId field
-        console.log('Student ID:', studentId);
-
-        // Directly update totalMark in the User collection
-        const student = await User.findById(studentId);
-
-        if (!student) {
-            return res.status(404).json({ message: 'Student not found.' });
-        }
-
-        // Log current totalMark before updating
-        console.log('Current totalMark before update:', student.totalMark);
-
-        // Increment the total marks of the student using findByIdAndUpdate
-        const updatedStudent = await User.findByIdAndUpdate(studentId, {
-            $inc: { totalMark: mark },  // Increment totalMark by the given mark
-        }, { new: true });  // Get the updated document
-
-        // Log the updated totalMark
-        console.log('Updated totalMark:', updatedStudent.totalMark);
-
-        return res.status(200).json({ message: 'Mark submitted successfully.' });
-    } catch (err) {
-        console.error('Error in submitMark:', err);
-        return res.status(500).json({ message: 'Server error' });
-    }
-};
+    };
+    
+    
 
 
 

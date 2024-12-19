@@ -102,10 +102,19 @@ const userSchema = new mongoose.Schema({
     ],
     
     
-    totalMark: {
-        type: Number,
-        default: 0,
-    },
+    courseMarks: [
+        {
+            course: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'Course',
+                required: true,
+            },
+            totalMark: {
+                type: Number,
+                default: 0,
+            },
+        }
+    ],
 
     //instractor
     skills: {
@@ -143,3 +152,5 @@ const userSchema = new mongoose.Schema({
 }, { timestamps: true }); 
 
 export const User = mongoose.model('User', userSchema);
+
+

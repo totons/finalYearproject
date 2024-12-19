@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { Link, useParams } from "react-router-dom";
 import Cookies from "js-cookie";
@@ -11,7 +11,9 @@ const Classshow = () => {
   const [error, setError] = useState("");
   const { user } = useContext(AuthContext);
   const [submittingAssignments, setSubmittingAssignments] = useState({});
-const studentId=user._id
+
+  const studentId = user._id;
+
   useEffect(() => {
     const fetchClasses = async () => {
       try {
@@ -26,6 +28,49 @@ const studentId=user._id
 
     fetchClasses();
   }, [courseId]);
+
+  const handleAssignmentSubmit = useCallback(
+    async (assignmentId, formData, courseId) => {
+      setSubmittingAssignments((prev) => ({
+        ...prev,
+        [assignmentId]: true,
+      }));
+
+      try {
+        const url = `http://127.0.0.1:5004/api/courses/${courseId}/assignments/${assignmentId}/submit`;
+
+        await axios.post(url, formData, {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("token")}`,
+          },
+        });
+
+        alert("Assignment submitted successfully!");
+      } catch (err) {
+        console.error(err);
+        alert("Error submitting assignment. Please try again.");
+      } finally {
+        setSubmittingAssignments((prev) => ({
+          ...prev,
+          [assignmentId]: false,
+        }));
+      }
+    },
+    []
+  );
+
+  const handleSubmissionCheck = useCallback(
+    (assignmentId) => {
+      return classes.some((classItem) =>
+        classItem.assignments.some(
+          (assignment) =>
+            assignment._id === assignmentId &&
+            assignment.submissions.some((submission) => submission.studentId === user._id)
+        )
+      );
+    },
+    [classes, user._id]
+  );
 
   if (loading) {
     return (
@@ -49,52 +94,9 @@ const studentId=user._id
     );
   }
 
-  const handleAssignmentSubmit = async (assignmentId, formData, courseId) => {
-    setSubmittingAssignments((prev) => ({
-      ...prev,
-      [assignmentId]: true,
-    }));
-  
-    try {
-      const url = `http://127.0.0.1:5004/api/courses/${courseId}/assignments/${assignmentId}/submit`;
-  
-      await axios.post(url, formData, {
-        headers: {
-          Authorization: `Bearer ${Cookies.get("token")}`,
-        },
-      });
-  
-      alert("Assignment submitted successfully!");
-    } catch (err) {
-      console.error(err);
-      alert("Error submitting assignment. Please try again.");
-    } finally {
-      setSubmittingAssignments((prev) => ({
-        ...prev,
-        [assignmentId]: false,
-      }));
-    }
-  };
-  console.log("Classes data: ", classes);
-console.log("User ID: ", user._id);
-
-  const handleSubmissionCheck = (assignmentId) => {
-    
-    return classes.some((classItem) =>
-      classItem.assignments.some(
-        (assignment) =>
-          assignment._id === assignmentId &&
-          assignment.submissions.some(
-            (submission) => submission.studentId === user._id
-          )
-      )
-    );
-  };
-  
-
   return (
     <div className="p-6 max-w-7xl mx-auto bg-gray-50 min-h-screen">
-      <h1 className="text-3xl font-bold mb-8 text-gray-800 border-b pb-4 px-4 flex ">
+      <h1 className="text-3xl font-bold mb-8 text-gray-800 border-b pb-4 px-4 flex">
         <h1>Class</h1>
         <Link
           className="ml-auto px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
@@ -104,9 +106,6 @@ console.log("User ID: ", user._id);
         </Link>
       </h1>
 
-
-
-      
       {classes.length > 0 ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 px-4">
           {classes.map((classItem, index) => (
@@ -158,87 +157,77 @@ console.log("User ID: ", user._id);
                     {classItem.assignments.map((assignment) => {
                       const deadlinePassed = new Date() > new Date(assignment.submissionDeadline);
                       const alreadySubmitted = handleSubmissionCheck(assignment._id);
+
                       return (
-                        <li
-                          key={assignment._id}
-                          className="p-4 bg-gray-50 rounded-lg border border-gray-100"
-                        >
-                          <h4 className="font-semibold text-gray-800">
-                            {assignment.title}
-                          </h4>
+                        <li key={assignment._id} className="p-4 bg-gray-50 rounded-lg border border-gray-100">
+                          <h4 className="font-semibold text-gray-800">{assignment.title}</h4>
                           <p className="text-gray-600">{assignment.description}</p>
                           <p>
-                            <span className="font-medium text-gray-700">
-                              File:{" "}
-                            </span>
+                            <span className="font-medium text-gray-700">File: </span>
                             <a
                               href={`http://localhost:5004/dashboard/showallclass/${assignment.fileUrl}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-blue-600 hover:text-blue-800 hover:underline"
                             >
-                              {assignment.fileUrl.includes(".pdf")
-                                ? "Open PDF"
-                                : "Download File"}
+                              {assignment.fileUrl.includes(".pdf") ? "Open PDF" : "Download File"}
                             </a>
                           </p>
 
                           <p>
-                            <span className="font-medium text-gray-700">
-                              Deadline:{" "}
-                            </span>
+                            <span className="font-medium text-gray-700">Deadline: </span>
                             {new Date(assignment.submissionDeadline).toLocaleString()}
                           </p>
 
                           {/* Submission Form */}
-{!deadlinePassed && !alreadySubmitted ? (
-  <form
-    onSubmit={(e) => {
-      e.preventDefault();
-      
-      const fileInput = e.target.elements.file;
-      
-      // Check if file is selected
-      if (!fileInput || !fileInput.files[0]) {
-        alert("Please select a file to submit.");
-        return;
-      }
+                          {!deadlinePassed && !alreadySubmitted ? (
+                            <form
+                              onSubmit={(e) => {
+                                e.preventDefault();
 
-      // Prepare FormData
-      const formData = new FormData();
-      formData.append("file", fileInput.files[0]);
-      formData.append("studentId", user._id); // Ensure user._id is available
+                                const fileInput = e.target.elements.file;
 
-      // Call your assignment submit handler
-      handleAssignmentSubmit(assignment._id, formData, courseId);
-    }}
-  >
-    <input
-      type="file"
-      name="file"
-      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-      required
-    />
-    <button
-      type="submit"
-      className={`mt-4 px-4 py-2 rounded-lg ${
-        submittingAssignments[assignment._id]
-          ? "bg-gray-500 cursor-not-allowed"
-          : alreadySubmitted
-          ? "bg-green-500 cursor-not-allowed"
-          : "bg-blue-500 hover:bg-blue-600"
-      } text-white`}
-      disabled={submittingAssignments[assignment._id] && alreadySubmitted && deadlinePassed}
-    >
-      {submittingAssignments[assignment._id] ? "Submitting..." : alreadySubmitted ? "Already Submitted" : "Submit Assignment"}
-    </button>
-  </form>
-) : alreadySubmitted ? (
-  <p className="text-green-500 mt-4">Assignment already submitted!</p>
-) : (
-  <p className="text-red-500 mt-4">Deadline passed. Cannot submit.</p>
-)}
+                                if (!fileInput || !fileInput.files[0]) {
+                                  alert("Please select a file to submit.");
+                                  return;
+                                }
 
+                                const formData = new FormData();
+                                formData.append("file", fileInput.files[0]);
+                                formData.append("studentId", user._id);
+
+                                handleAssignmentSubmit(assignment._id, formData, courseId);
+                              }}
+                            >
+                              <input
+                                type="file"
+                                name="file"
+                                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                                required
+                              />
+                              <button
+                                type="submit"
+                                className={`mt-4 px-4 py-2 rounded-lg ${
+                                  submittingAssignments[assignment._id]
+                                    ? "bg-gray-500 cursor-not-allowed"
+                                    : alreadySubmitted
+                                    ? "bg-green-500 cursor-not-allowed"
+                                    : "bg-blue-500 hover:bg-blue-600"
+                                } text-white`}
+                                disabled={submittingAssignments[assignment._id] || alreadySubmitted || deadlinePassed}
+                              >
+                                {submittingAssignments[assignment._id]
+                                  ? "Submitting..."
+                                  : alreadySubmitted
+                                  ? "Already Submitted"
+                                  : "Submit Assignment"}
+                              </button>
+                            </form>
+                          ) : alreadySubmitted ? (
+                            <p className="text-green-500 mt-4">Assignment already submitted!</p>
+                          ) : (
+                            <p className="text-red-500 mt-4">Deadline passed. Cannot submit.</p>
+                          )}
                         </li>
                       );
                     })}

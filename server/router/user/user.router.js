@@ -21,7 +21,10 @@ router.patch('/instructor/:id', isAuthenticated, isInstruct, updateInstructorPro
 router.get('/course', isAuthenticated, getEnrolledCourses);
 // router.post ('/emailsend',emailsend)
 // router.post ('/change-passwoed',changepasswd)
-router.get('/:studentId', getSingleUserById);
+
+
+
+router.get('/:studentId/:courseId', getSingleUserById);
 
 
 

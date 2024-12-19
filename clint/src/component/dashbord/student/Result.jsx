@@ -9,12 +9,9 @@ const Result = () => {
     const [students, setStudents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [marks, setMarks] = useState({});  // Store marks for each submission
+    const [totalMarks, setTotalMarks] = useState(0);
     const token = Cookies.get('token');
-    const [total,setTotal]=useState(0)
-    console.log(total)
-
-    const {user}=useContext(AuthContext);
+   
 
     useEffect(() => {
         const fetchEnrolledStudents = async () => {
@@ -28,6 +25,19 @@ const Result = () => {
                     }
                 );
                 setStudents(response.data.classes);
+
+                // Calculate the total marks
+                let total = 0;
+                response.data.classes.forEach((studentClass) => {
+                    studentClass.assignments.forEach((assignment) => {
+                        assignment.submissions.forEach((submission) => {
+                            if (submission.student === studentId && submission.mark != null) {
+                                total += submission.mark;
+                            }
+                        });
+                    });
+                });
+                setTotalMarks(total);
             } catch (err) {
                 setError(err.response?.data?.message || 'Failed to fetch enrolled students.');
             } finally {
@@ -36,17 +46,7 @@ const Result = () => {
         };
 
         fetchEnrolledStudents();
-    }, [courseId, token]);
-
-    const handleMarkChange = (submissionId, value) => {
-        setMarks((prevMarks) => ({
-            ...prevMarks,
-            [submissionId]: value,  // Update the mark for a specific submission
-        }));
-    };
-
- 
-    
+    }, [courseId, studentId, token]);
 
     if (loading) return <div>Loading...</div>;
     if (error) return <div>Error: {error}</div>;
@@ -82,7 +82,6 @@ const Result = () => {
                                                         >
                                                             View Submission
                                                         </Link>
-                                                        
                                                     </div>
                                                 ) : null
                                             ))
@@ -91,7 +90,6 @@ const Result = () => {
                                         )}
                                     </td>
                                     <td className="border border-gray-300 px-4 py-2">
-                                        {/* Display the mark from the submission if it's already available */}
                                         {assignment.submissions.length > 0 ? (
                                             assignment.submissions.map((submission) => (
                                                 submission.student === studentId && submission.mark != null ? (
@@ -109,14 +107,11 @@ const Result = () => {
                 </tbody>
             </table>
 
-           
-
-            <div className='flex justify-center mt-[30px]'>
-                total mark :{user.totalMark}
+            <div className="flex justify-center mt-[30px]">
+                Total Marks: {totalMarks}
             </div>
         </div>
     );
 };
 
 export default Result;
-

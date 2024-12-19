@@ -7,7 +7,7 @@ const InstructorInfo = ({ instructor }) => {
         
 
          } = instructor;
-   
+   console.log(fullname)
     
     return (
         <div className="flex justify-center">

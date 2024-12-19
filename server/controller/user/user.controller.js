@@ -3,7 +3,8 @@ import  bcrypt  from "bcryptjs";
 
 import mongoose from 'mongoose';
 import { Education, User, Work } from '../../model/user/user.model.js';
-import { OTP } from '../../model/otp/otp.model.js';
+
+import { Course } from '../../model/course/course.model.js';
 
 
 
@@ -228,26 +229,24 @@ export const updateInstructorProfile = async (req, res) => {
 
 export const getAllActiveInstructors = async (req, res) => {
   try {
-  
-
-    // Fetch all users with the role 'instruct' and isactive set to true, and populate the courses field
-    const instructors = await User.find({ role: 'instruct' })
-      .populate('courses') // This will populate the courses field with course data
-      .select('fullname email image courses'); // Select necessary fields for the response
+    // Fetch all users with the role 'instruct'
+    const instructors = await User.find({ role: 'instruct' }) // Mongoose .find() method
+      .populate('courses', 'title description') // Populate specific fields for courses
+      .select('fullname email image githubLink linkedInLink skills workExperience educationExperience aboutUs'); // Include necessary fields
 
     // Check if no instructors were found
     if (instructors.length === 0) {
-     
       return res.status(404).json({ message: 'No active instructors found' });
     }
 
-  
+    // Respond with the instructors data
     res.json({ instructors });
   } catch (error) {
     console.error('Error fetching instructors:', error);
     res.status(500).json({ message: 'Failed to fetch instructors', error });
   }
 };
+
 
 
 
@@ -278,37 +277,40 @@ export const getEnrolledCourses = async (req, res) => {
 
 
 
-
 export const getSingleUserById = async (req, res) => {
   try {
-    const { studentId } = req.params;
+      const { studentId, courseId } = req.params;
+      console.log('Received studentId:', studentId, 'courseId:', courseId);
 
-    // Log the received ID
-    console.log('Received studentId:', studentId);
+      // Check if the provided IDs are valid ObjectIDs
+      if (!mongoose.Types.ObjectId.isValid(studentId) || !mongoose.Types.ObjectId.isValid(courseId)) {
+          return res.status(400).json({ message: 'Invalid ID format!' });
+      }
 
-    // Validate ObjectId
-    if (!mongoose.Types.ObjectId.isValid(studentId)) {
-      console.log('Invalid ID format');
-      return res.status(400).json({ message: 'Invalid user ID format' });
-    }
+      // Find the user by studentId
+      const user = await User.findById(studentId);
+      if (!user) {
+          return res.status(404).json({ message: 'User not found!' });
+      }
 
-    // Fetch user
-    const user = await User.findById(studentId);
+      console.log('Found user:', user);
 
-    if (!user) {
-      console.log(`User not found for ID: ${studentId}`);
-      return res.status(404).json({ message: 'User not found' });
-    }
+      // Log the user's courseMarks to inspect their structure
+      console.log('User courseMarks:', user.courseMarks);
 
-    console.log('User found:', user);
-    return res.status(200).json({ user });
+      // Find the courseMark with the specific courseId in user's courseMarks
+      const courseMark = user.courseMarks.find(mark => mark.course.toString() === courseId.toString());
+      if (!courseMark) {
+          return res.status(404).json({ message: 'Course  found for this user!' });
+      }
+
+      // Return the totalMark for the specified course
+      return res.status(200).json({ totalMark: courseMark.totalMark });
   } catch (error) {
-    console.error('Error fetching user:', error.message);
-    return res.status(500).json({ message: 'Failed to fetch user', error: error.message });
+      console.error("Error fetching user or course:", error);
+      return res.status(500).json({ message: 'Failed to fetch data!', error: error.message });
   }
 };
-
-
 
 
 

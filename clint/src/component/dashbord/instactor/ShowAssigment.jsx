@@ -10,9 +10,11 @@ const ShowAssignment = () => {
     const [error, setError] = useState('');
     const [marks, setMarks] = useState({});
     const [submittedMarks, setSubmittedMarks] = useState({});
-    const [total, setTotal] = useState(0);
+    const [total, setTotal] = useState(0); // Adjust this to store a number
+    const [showResults, setShowResults] = useState(false); // State to trigger the total marks fetch
     const token = Cookies.get('token');
-    const navigate=useNavigate()
+    const navigate = useNavigate();
+
     useEffect(() => {
         const fetchEnrolledStudents = async () => {
             try {
@@ -34,6 +36,25 @@ const ShowAssignment = () => {
 
         fetchEnrolledStudents();
     }, [courseId, token]);
+
+    useEffect(() => {
+        const fetchTotalMarks = async () => {
+            if (studentId && courseId) {
+                try {
+                    const response = await axios.get(
+                        `http://127.0.0.1:5004/user/${studentId}/${courseId}`
+                    );
+                    setTotal(response.data.totalMark || 0); // Assuming response.data.totalMark contains the total
+                } catch (err) {
+                    setError(err.response?.data?.message || 'Failed to fetch student marks.');
+                }
+            }
+        };
+
+        if (showResults) {
+            fetchTotalMarks();
+        }
+    }, [studentId, courseId, showResults]); // This will trigger when the button is clicked
 
     const handleMarkChange = (submissionId, value) => {
         setMarks((prevMarks) => ({
@@ -61,35 +82,18 @@ const ShowAssignment = () => {
             );
             setError('');
             alert(response.data.message);
-            navigate(`/dashboard/enrollsetudent/${courseId}`)
-            // Update the submittedMarks state
+            navigate(`/dashboard/enrollsetudent/${courseId}`);
             setSubmittedMarks((prev) => ({
                 ...prev,
-                [submissionId]: true, // Mark this submission as submitted
+                [submissionId]: true,
             }));
-
-            // Update total marks dynamically
             setTotal((prevTotal) => prevTotal + parseInt(mark, 10));
         } catch (err) {
             setError(err.response?.data?.message || 'An error occurred.');
         }
     };
 
-    useEffect(() => {
-        const fetchTotalMarks = async () => {
-            try {
-                const response = await axios.get(`http://127.0.0.1:5004/user/${studentId}`);
-                setTotal(response.data.user.totalMark);
-            } catch (err) {
-                setError(err.response?.data?.message || 'Failed to fetch student marks.');
-            }
-        };
-
-        if (studentId) {
-            fetchTotalMarks();
-        }
-    }, [studentId]); // Will trigger when studentId changes
-
+    // Display loading and error states
     if (loading) return <div>Loading...</div>;
     if (error) return <div>Error: {error}</div>;
 
@@ -112,46 +116,46 @@ const ShowAssignment = () => {
                                     <td className="border border-gray-300 px-4 py-2">{studentClass.title}</td>
                                     <td className="border border-gray-300 px-4 py-2">{assignment.title}</td>
                                     <td className="border border-gray-300 px-4 py-2">
-                                    {assignment.submissions?.length > 0 ? (
-    assignment.submissions.map((submission) =>
-        submission.student === studentId ? (
-            <div key={submission._id}>
-                <Link
-                    to={`http://localhost:5004/dashboard/showallclass/${submission.fileUrl}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-500"
-                >
-                    View Submission
-                </Link>
-                <div className="mt-2">
-                    {submission.mark > 0 || submittedMarks[submission._id] ? (
-                        <span>{submission.mark || marks[submission._id]}</span>
-                    ) : (
-                        <>
-                            <input
-                                type="number"
-                                placeholder="Enter mark"
-                                value={marks[submission._id] || ''}
-                                onChange={(e) => handleMarkChange(submission._id, e.target.value)}
-                                className="border p-1"
-                            />
-                            <button
-                                onClick={() => handleSubmitMark(submission._id)}
-                                className="ml-2 text-white p-1 rounded bg-blue-500 hover:bg-blue-600"
-                            >
-                                Submit Mark
-                            </button>
-                        </>
-                    )}
-                </div>
-            </div>
-        ) : null
-    )
-) : (
-    <span className="text-red-500">No submission yet.</span>
-)}
-</td>
+                                        {assignment.submissions?.length > 0 ? (
+                                            assignment.submissions.map((submission) =>
+                                                submission.student === studentId ? (
+                                                    <div key={submission._id}>
+                                                        <Link
+                                                            to={`http://localhost:5004/dashboard/showallclass/${submission.fileUrl}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="text-blue-500"
+                                                        >
+                                                            View Submission
+                                                        </Link>
+                                                        <div className="mt-2">
+                                                            {submission.mark > 0 || submittedMarks[submission._id] ? (
+                                                                <span>{submission.mark || marks[submission._id]}</span>
+                                                            ) : (
+                                                                <>
+                                                                    <input
+                                                                        type="number"
+                                                                        placeholder="Enter mark"
+                                                                        value={marks[submission._id] || ''}
+                                                                        onChange={(e) => handleMarkChange(submission._id, e.target.value)}
+                                                                        className="border p-1"
+                                                                    />
+                                                                    <button
+                                                                        onClick={() => handleSubmitMark(submission._id)}
+                                                                        className="ml-2 text-white p-1 rounded bg-blue-500 hover:bg-blue-600"
+                                                                    >
+                                                                        Submit Mark
+                                                                    </button>
+                                                                </>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                ) : null
+                                            )
+                                        ) : (
+                                            <span className="text-red-500">No submission yet.</span>
+                                        )}
+                                    </td>
 
                                     <td className="border border-gray-300 px-4 py-2">
                                         {assignment.submissions.length > 0 ? (
@@ -171,9 +175,16 @@ const ShowAssignment = () => {
                 </tbody>
             </table>
 
-
-            <div className="mt-4 bg-red">
-                <strong>Total Marks:</strong> {total}
+            <div className="mt-4 bg-gray-100 p-4 rounded">
+                <button
+                    onClick={() => setShowResults(true)}
+                    className="text-white bg-blue-500 p-2 rounded hover:bg-blue-600"
+                >
+                    Show Result
+                </button>
+                <div className="mt-4">
+                    <strong>Total Marks for Course:</strong> {total}
+                </div>
             </div>
         </div>
     );

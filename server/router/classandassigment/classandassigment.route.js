@@ -37,6 +37,7 @@ router.post(
 
 
 router.get('/:courseId/assignments', getAssignments);
+
 router.patch('/assignments/submit-mark/:submissionId/:studentId', submitMark);
 
 
