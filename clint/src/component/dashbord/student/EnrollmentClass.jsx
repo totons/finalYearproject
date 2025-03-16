@@ -58,6 +58,7 @@ const EnrollmentClass = () => {
         View Class
     </Link>
 </button>
+
                                 </div>
                             </div>
 

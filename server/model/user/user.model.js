@@ -4,26 +4,26 @@ import mongoose from "mongoose";
 
 
 const workExperienceSchema = new mongoose.Schema({
-    company:{
+    company: {
         type: String,
         required: true,
-    } ,
+    },
     position: {
         type: String,
         required: true,
     },
-    startDate:{
+    startDate: {
         type: Date,
         required: true,
     },
-    endDate:{
+    endDate: {
         type: Date,
-        
+
     },
-    description:{
+    description: {
         type: String,
         maxlength: 500, // Optional character limit
-        
+
     },
 });
 
@@ -37,19 +37,19 @@ const educationExperienceSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    degree:{
+    degree: {
         type: String,
         required: true,
     },
-    startDate:{
+    startDate: {
         type: Date,
         required: true,
     },
     endDate: {
         type: Date,
-        
+
     },
-    description:{
+    description: {
         type: String,
         maxlength: 500, // Optional character limit
     },
@@ -69,10 +69,10 @@ const userSchema = new mongoose.Schema({
         required: true,
         unique: true,
     },
-    password: { 
-        type: String, 
+    password: {
+        type: String,
         required: true,
-        minlength: 8 
+        minlength: 8
     },
     image: {
         type: String,
@@ -80,59 +80,51 @@ const userSchema = new mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ['admin', 'student','instruct'],
+        enum: ['admin', 'student', 'instruct'],
         default: 'admin',
         required: true,
-        
+
     },
 
-    enrolmentCourse: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Course',
-        },
-    ],
 
-    courses: [
-    {
+    enrolmentCourse: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Course',
-    }
-        
-    ],
-    
-    
-    courseMarks: [
-        {
-            course: {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: 'Course',
-                required: true,
-            },
-            totalMark: {
-                type: Number,
-                default: 0,
-            },
+    }, ],
+
+    courses: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Course',
         }
+
     ],
+
+
+    courseMarks: [{
+        course: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Course',
+            required: true,
+        },
+        totalMark: {
+            type: Number,
+            default: 0,
+        },
+    }],
 
     //instractor
     skills: {
         type: String,
-        
+
     },
-    workExperience: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
+    workExperience: [{
+        type: mongoose.Schema.Types.ObjectId,
         ref: 'Work',
-        }
-    ],
-    educationExperience: [
-          {
-            type: mongoose.Schema.Types.ObjectId,
+    }],
+    educationExperience: [{
+        type: mongoose.Schema.Types.ObjectId,
         ref: 'Education',
-        }
-    ],
+    }],
     githubLink: {
         type: String,
     },
@@ -141,16 +133,14 @@ const userSchema = new mongoose.Schema({
     },
     aboutUs: {
         type: String,
-        maxlength: 500, 
-        default: '', 
+        maxlength: 500,
+        default: '',
     },
 
-   
-    
-    
 
-}, { timestamps: true }); 
+
+
+
+}, { timestamps: true });
 
 export const User = mongoose.model('User', userSchema);
-
-

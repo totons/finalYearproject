@@ -16,7 +16,7 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(cookieParser())
 const corsOptions = {
-    origin: 'http://localhost:5174',
+    origin: 'http://localhost:5173',
     credentials: true,
 
 }
@@ -37,12 +37,13 @@ app.get('/', (req, res) => {
 import userRouter from './router/user/user.router.js'
 import courseRouter from './router/course/course.route.js'
 import classandassigmentRouter from './router/classandassigment/classandassigment.route.js'
+import certificateRouter from './model/certificate/Certificate.route.js'
 
 //route
 app.use("/user", userRouter)
 app.use("/course", courseRouter)
 app.use("/api", classandassigmentRouter)
-
+app.use("/api/certificate", certificateRouter)
 
 
 app.listen(port, () => {

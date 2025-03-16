@@ -11,7 +11,7 @@ const Result = () => {
     const [error, setError] = useState('');
     const [totalMarks, setTotalMarks] = useState(0);
     const token = Cookies.get('token');
-   
+   const [CertificateData,setCertificateData] = useState()
 
     useEffect(() => {
         const fetchEnrolledStudents = async () => {
@@ -48,9 +48,25 @@ const Result = () => {
         fetchEnrolledStudents();
     }, [courseId, studentId, token]);
 
+    useEffect(() => {
+        const fetchCertificateData = async () => {
+            try {
+                const response = await axios.get(
+                    `http://127.0.0.1:5004/api/certificate/certificates/${courseId}/${studentId}`
+                );
+                console.log('Certificate Data:', response.data);  // Log data to console
+                setCertificateData(response.data); // Optionally store the data in state
+            } catch (err) {
+                console.error('Error fetching certificate data:', err);
+            }
+        };
+
+        fetchCertificateData(); // Automatically fetch certificate data on mount
+    }, []); 
+
     if (loading) return <div>Loading...</div>;
     if (error) return <div>Error: {error}</div>;
-
+    
     return (
         <div className="p-4">
             <table className="table-auto w-full border-collapse border border-gray-300">
@@ -109,6 +125,16 @@ const Result = () => {
 
             <div className="flex justify-center mt-[30px]">
                 Total Marks: {totalMarks}
+            </div>
+           
+
+            <div className='flex justify-center'>
+            {
+               CertificateData &&  (
+                <Link  className="inline-block px-4 py-2 mt-4 bg-blue-500 text-white rounded hover:bg-blue-700 transition-all" target='_blank' to={`${CertificateData.image}`}>Downlode CertificateData</Link>
+               )
+ 
+            }
             </div>
         </div>
     );
