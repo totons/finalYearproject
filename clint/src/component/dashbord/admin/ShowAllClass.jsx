@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { getBaseUrl } from '../../../utils/baseUrl';
+import { Link } from 'react-router-dom';
 
 const ShowAllClass = () => {
     const [courses, setCourses] = useState([]);
@@ -50,6 +51,7 @@ const ShowAllClass = () => {
                             <th className="p-4">Skills</th>
                             <th className="p-4">Enrollment Last Date</th>
                             <th className="p-4">Status</th>
+                            <th className="p-4">action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -71,6 +73,16 @@ const ShowAllClass = () => {
                                             {course.isactive ? "Published" : "Inactive"}
                                         </span>
                                     </td>
+
+                                     <td className='p-4 text-center'>
+                                                                    <button
+                                                                            
+                                                                            className="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition"
+                                                                        >
+                                                                          <Link to={`/dashboard/enrollsetudent/${course._id}`}>  {course.enrolledStudents.length}</Link>
+                                                                        </button>
+                                                                    </td>
+                                    
                                 </tr>
                             ))
                         ) : (

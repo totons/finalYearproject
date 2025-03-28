@@ -120,7 +120,7 @@ const AllCourse = () => {
                                         
                                         className="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition"
                                     >
-                                      <Link to={`/dashboard/enrollsetudent/${course._id}`}>  {course.enrolledStudents.length}</Link>
+                                      <Link to={`/dashboard/enrollsetudents/${course._id}`}>  {course.enrolledStudents.length}</Link>
                                     </button>
                                 </td>
                                 </>

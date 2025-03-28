@@ -31,7 +31,7 @@ app.use('/dashboard/showallclass/uploads', express.static(path.resolve('uploads'
 app.get('/', (req, res) => {
     res.send('Hello World!')
 })
-
+app.use(express.static('public'));
 
 //api
 import userRouter from './router/user/user.router.js'

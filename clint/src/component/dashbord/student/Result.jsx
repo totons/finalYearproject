@@ -105,17 +105,23 @@ const Result = () => {
                                             <span className="text-red-500">No submission yet.</span>
                                         )}
                                     </td>
-                                    <td className="border border-gray-300 px-4 py-2">
-                                        {assignment.submissions.length > 0 ? (
-                                            assignment.submissions.map((submission) => (
-                                                submission.student === studentId && submission.mark != null ? (
-                                                    <span key={submission._id}>{submission.mark}</span>
-                                                ) : null
-                                            ))
-                                        ) : (
-                                            <span>No mark assigned</span>
-                                        )}
-                                    </td>
+                                    <td className="border border-gray-300 px-4 py-2 text-center">
+    {assignment.submissions.length > 0 ? (
+        assignment.submissions.map((submission) => 
+            submission.student === studentId && submission.mark != null ? (
+                <span 
+                    key={submission._id} 
+                    className={submission.mark >= 40 ? "text-green-600 font-bold" : "text-red-600 font-bold"}
+                >
+                    {submission.mark} {submission.mark >= 40 ? "(P)" : "(F)"}
+                </span>
+            ) : null
+        )
+    ) : (
+        <span className="text-gray-500">No mark assigned</span>
+    )}
+</td>
+
                                 </tr>
                             ))
                         ) : null

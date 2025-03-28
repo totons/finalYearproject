@@ -3,8 +3,122 @@
 import mongoose from "mongoose";
 import { Course } from "../../model/course/course.model.js";
 import { User } from "../../model/user/user.model.js";
+import PDFDocument from 'pdfkit';
+
+import { Assignment } from "../../model/classassiment/classassiment.model.js";
 
 
+
+export const generateStudentPDF = async (req, res) => {
+    try {
+        const { courseId } = req.params;
+
+        // Fetch course details and enrolled students
+        const course = await Course.findById(courseId)
+    .populate('enrolledStudents') // Populating enrolled students
+    .populate('instructor'); // Populating instructor
+
+
+        if (!course) {
+            return res.status(404).json({ error: 'Course not found' });
+        }
+
+        if (!course.enrolledStudents || course.enrolledStudents.length === 0) {
+            return res.status(400).json({ error: 'No enrolled students found' });
+        }
+
+        // Fetch assignments and their submissions
+        const assignments = await Assignment.find({ class: { $in: course.classes } }).populate('submissions.student');
+
+        res.setHeader('Content-Disposition', 'attachment; filename="Enrolled_Students.pdf"');
+        res.setHeader('Content-Type', 'application/pdf');
+
+        const doc = new PDFDocument({ margin: 20 });
+        doc.pipe(res);
+
+        doc.font('Helvetica-Bold').fontSize(24).fillColor('#000')
+            .text(`Online Learning Academy`, { align: 'center' });
+        
+        // **Title Section**
+        doc.font('Helvetica-Bold').fontSize(16).fillColor('#0056b3')
+            .text(`Course Name - ${course.title}`, { align: 'center' });
+        doc.font('Helvetica-Bold').fontSize(16).fillColor('#0056b3')
+            .text(`Instractor Name - ${course.instructor.fullname}`, { align: 'center' });
+       
+        doc.fillColor('black');
+
+        // **Define Table Columns**
+        const startX = 50;
+        const startY = 150;
+        const rowHeight = 30;
+
+        // Dynamic width calculation: divide the width by the number of assignments
+        const availableWidth = 300; // Set a reasonable available width for assignments columns
+        const colWidths = [50, 180, ...Array(assignments.length).fill(availableWidth / assignments.length)];
+
+        let x = startX;
+        let y = startY;
+
+        // **Table Header with Background**
+        doc.rect(startX, startY, colWidths.reduce((sum, w) => sum + w, 0), rowHeight).fill('#0056b3');
+        doc.fillColor('white').fontSize(12).font('Helvetica-Bold');
+        
+        doc.text('S.No', x, y + 8, { width: colWidths[0], align: 'center' });
+        x += colWidths[0];
+        doc.text('Full Name', x, y + 8, { width: colWidths[1], align: 'center' });
+        x += colWidths[1];
+
+        // Add Assignment Headers
+        assignments.forEach((_, i) => {
+            doc.text(`Ass ${i + 1}`, x, y + 8, { width: colWidths[i + 2], align: 'center' });
+            x += colWidths[i + 2];
+        });
+
+        doc.fillColor('black').stroke();
+        y += rowHeight;
+
+        // **Student Data Rows with Alternating Colors**
+        course.enrolledStudents.forEach((student, index) => {
+            const isEvenRow = index % 2 === 0;
+            if (isEvenRow) {
+                doc.rect(startX, y, colWidths.reduce((sum, w) => sum + w, 0), rowHeight).fill('#f2f2f2');
+                doc.fillColor('black');
+            }
+
+            x = startX;
+            doc.text(index + 1, x, y + 8, { width: colWidths[0], align: 'center' });
+            x += colWidths[0];
+
+            doc.text(student.fullname || 'N/A', x, y + 8, { width: colWidths[1], align: 'center' });
+            x += colWidths[1];
+
+            assignments.forEach((assignment, i) => {
+                const submission = assignment.submissions.find(sub => sub.student._id.toString() === student._id.toString());
+                const mark = submission ? submission.mark : null;
+                let markText = '-';
+
+                if (mark !== null) {
+                    const status = mark >= 40 ? '(P)' : '(F)';
+                    markText = `${mark} ${status}`;
+                }
+
+                // **Text color change based on Pass/Fail**
+                const isPassed = mark >= 40;
+                doc.fillColor(isPassed ? 'green' : 'red').text(markText, x, y + 8, { width: colWidths[i + 2], align: 'center' });
+
+                x += colWidths[i + 2];
+            });
+
+            doc.stroke();
+            y += rowHeight;
+        });
+
+        doc.end();
+    } catch (error) {
+        console.error('PDF Generation Error:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+};
 
 // Add a new course (by instructor)
 export const addCourse = async (req, res) => {

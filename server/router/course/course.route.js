@@ -2,7 +2,7 @@ import express from 'express';
 
 import { isAuthenticated } from '../../midelware/user.auth.js';
 import { isInstruct } from '../../midelware/instructor.js';
-import { addCourse, deleteCourse,  getAllCourses, getCourseById,  getEnrolledStudents,  getenrollStudent, getPendingCourses, publishCourse, unpublishCourse, updateCourse } from '../../controller/course/course.controller.js';
+import { addCourse, deleteCourse,  generateStudentPDF,  getAllCourses, getCourseById,  getEnrolledStudents,  getenrollStudent, getPendingCourses, publishCourse, unpublishCourse, updateCourse } from '../../controller/course/course.controller.js';
 import { upload } from '../../midelware/ImageUplode.js';
 import { isAdmin } from '../../midelware/admin.js';
 
@@ -11,6 +11,8 @@ import { isAdmin } from '../../midelware/admin.js';
 
 
 const router =express.Router();
+
+router.get('/download-pdf/:courseId', generateStudentPDF);
 
 
 // Route for uploading the image

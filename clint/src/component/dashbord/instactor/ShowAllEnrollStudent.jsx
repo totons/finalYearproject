@@ -3,7 +3,8 @@ import { Link, useParams } from 'react-router-dom';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import AddCertificateModal from './AddCertificateModal';  // Import the modal component
-
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 const ShowAllEnrollStudent = () => {
     const { courseId } = useParams(); // Fetch courseId from URL
     const [students, setStudents] = useState([]);
@@ -12,6 +13,32 @@ const ShowAllEnrollStudent = () => {
     const [isModalOpen, setIsModalOpen] = useState(false); // Manage modal state
     const [selectedStudentId, setSelectedStudentId] = useState(null); // Store selected student ID
     const token = Cookies.get('token');
+
+
+
+
+    const downloadPDF = async () => {
+        try {
+            const response = await axios.get(`http://127.0.0.1:5004/course/download-pdf/${courseId}`, {
+                responseType: 'blob', // Important for handling file download
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'Enrolled_Students.pdf');
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        } catch (error) {
+            console.error("Error downloading PDF:", error);
+        }
+    };
+
+
 
     // Function to fetch enrolled students
     const fetchEnrolledStudents = async () => {
@@ -65,6 +92,11 @@ const ShowAllEnrollStudent = () => {
                         <Link to={`/dashboard/addassigment/${courseId}`}>Add Assignment</Link>
                     </button>
                 </div>
+                  {/* <button className="px-4 flex justify-center  py-2 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600 hover:shadow-lg transition duration-200">
+                    <Link to={`/dashboard/showallclasss/${courseId}`} className="text-white hover:underline">
+                        View Class
+                    </Link>
+                </button> */}
             </div>
             {students.length > 0 ? (
                 <table className="min-w-full table-auto border-collapse">
@@ -121,6 +153,17 @@ const ShowAllEnrollStudent = () => {
                     onSubmit={refreshStudentsList} // Refresh list after adding certificate
                 />
             )}
+
+
+
+<div className='flex'>
+<button
+                onClick={downloadPDF}
+                className="bg-green-500 text-white px-4 py-2 rounded mx-auto mt-4"
+            >
+                Download PDF
+            </button>
+</div>
         </div>
     );
 };
