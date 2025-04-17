@@ -1,16 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Cookies from 'js-cookie';
-import AddCertificateModal from './AddCertificateModal';  // Import the modal component
+import AddCertificateModal from './AddCertificateModal';
 
 const Show = () => {
     const { courseId } = useParams(); // Fetch courseId from URL
+    const navigate = useNavigate(); // Add useNavigate hook
     const [students, setStudents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [isModalOpen, setIsModalOpen] = useState(false); // Manage modal state
-    const [selectedStudentId, setSelectedStudentId] = useState(null); // Store selected student ID
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedStudentId, setSelectedStudentId] = useState(null);
     const token = Cookies.get('token');
 
     // Function to fetch enrolled students
@@ -35,19 +36,23 @@ const Show = () => {
     }, [courseId]);
 
     const openModal = (studentId) => {
-        setSelectedStudentId(studentId); // Set the selected student ID
-        setIsModalOpen(true); // Open the modal
+        setSelectedStudentId(studentId);
+        setIsModalOpen(true);
     };
 
     const closeModal = () => {
-        setIsModalOpen(false); // Close the modal
-        setSelectedStudentId(null); // Clear selected student ID
+        setIsModalOpen(false);
+        setSelectedStudentId(null);
     };
 
     const refreshStudentsList = () => {
-        // Call fetchEnrolledStudents again to refresh the list
         fetchEnrolledStudents();
-        closeModal(); // Close the modal after submitting
+        closeModal();
+    };
+
+    // Function to navigate to statistics page
+    const viewStatistics = () => {
+        navigate(`/dashboard/student-statistics/${courseId}`);
     };
 
     if (loading) return <div>Loading...</div>;
@@ -58,24 +63,24 @@ const Show = () => {
             <div className="mb-4 flex justify-center">
                 <h1 className="text-2xl font-bold mb-4">Enrolled Students</h1>
                 <div className="mb-4">
-                    {/* <button className="bg-blue-500 text-white px-4 py-2 rounded mr-2">
-                        <Link to={`/dashboard/addclass/${courseId}`}>Add Class</Link>
+                    <button className="px-4 flex justify-center py-2 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600 hover:shadow-lg transition duration-200">
+                        <Link to={`/dashboard/showallclasss/${courseId}`} className="text-white hover:underline">
+                            View Class
+                        </Link>
                     </button>
-                    <button className="bg-green-500 text-white px-4 py-2 rounded">
-                        <Link to={`/dashboard/addassigment/${courseId}`}>Add Assignment</Link>
-                    </button> */}
-                    <button className="px-4 flex justify-center  py-2 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600 hover:shadow-lg transition duration-200">
-                    <Link to={`/dashboard/showallclasss/${courseId}`} className="text-white hover:underline">
-                        View Class
-                    </Link>
-                </button>
                 </div>
-                  {/* <button className="px-4 flex justify-center  py-2 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600 hover:shadow-lg transition duration-200">
-                    <Link to={`/dashboard/showallclasss/${courseId}`} className="text-white hover:underline">
-                        View Class
-                    </Link>
-                </button> */}
             </div>
+            
+            {/* Add button for student statistics */}
+            <div className="mb-4 flex justify-center">
+                <button 
+                    onClick={viewStatistics}
+                    className="px-4 py-2 bg-purple-500 text-white rounded-lg shadow-md hover:bg-purple-600 hover:shadow-lg transition duration-200"
+                >
+                    View Student Statistics
+                </button>
+            </div>
+            
             {students.length > 0 ? (
                 <table className="min-w-full table-auto border-collapse">
                     <thead>
@@ -83,8 +88,6 @@ const Show = () => {
                             <th className="px-4 py-2 border text-left">Image</th>
                             <th className="px-4 py-2 border text-left">Full Name</th>
                             <th className="px-4 py-2 border text-left">Email</th>
-                            {/* <th className="px-4 py-2 border text-left">Action</th>
-                            <th className="px-4 py-2 border text-left">Certificate</th> */}
                         </tr>
                     </thead>
                     <tbody>
@@ -99,22 +102,6 @@ const Show = () => {
                                 </td>
                                 <td className="px-4 py-2">{student.fullname}</td>
                                 <td className="px-4 py-2">{student.email}</td>
-                                {/* <td className="px-4 py-2">
-                                    <Link
-                                        to={`/dashboard/enrollsetudent/${courseId}/student/${student._id}`}
-                                        className="bg-blue-500 text-white px-4 py-2 rounded"
-                                    >
-                                        Show Assignments
-                                    </Link>
-                                </td>
-                                <td className="px-4 py-2">
-                                    <button
-                                        onClick={() => openModal(student._id)} // Open modal and pass student ID
-                                        className="bg-blue-500 text-white px-4 py-2 rounded"
-                                    >
-                                        Add Certificate
-                                    </button>
-                                </td> */}
                             </tr>
                         ))}
                     </tbody>
@@ -126,9 +113,9 @@ const Show = () => {
             {isModalOpen && selectedStudentId && (
                 <AddCertificateModal
                     courseId={courseId}
-                    studentId={selectedStudentId} // Pass selected student ID
+                    studentId={selectedStudentId}
                     onClose={closeModal}
-                    onSubmit={refreshStudentsList} // Refresh list after adding certificate
+                    onSubmit={refreshStudentsList}
                 />
             )}
         </div>

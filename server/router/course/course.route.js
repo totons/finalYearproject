@@ -2,7 +2,7 @@ import express from 'express';
 
 import { isAuthenticated } from '../../midelware/user.auth.js';
 import { isInstruct } from '../../midelware/instructor.js';
-import { addCourse, deleteCourse,  generateStudentPDF,  getAllCourses, getCourseById,  getEnrolledStudents,  getenrollStudent, getPendingCourses, publishCourse, unpublishCourse, updateCourse } from '../../controller/course/course.controller.js';
+import { addCourse, deleteCourse,  generateStudentPDF,  getAllCourses, getCourseById,  getCourseStatistics,  getEnrolledStudents,  getenrollStudent, getPendingCourses, publishCourse, unpublishCourse, updateCourse } from '../../controller/course/course.controller.js';
 import { upload } from '../../midelware/ImageUplode.js';
 import { isAdmin } from '../../midelware/admin.js';
 
@@ -44,6 +44,7 @@ router.get('/:courseId', getCourseById);
 router.put('/:courseId',upload.single("imagess"),isAuthenticated,isInstruct ,updateCourse);
 
 router.delete('/:courseId',isAuthenticated,isInstruct ,deleteCourse);
+router.get('/courses/:courseId/statistics', getCourseStatistics);
 
 
 

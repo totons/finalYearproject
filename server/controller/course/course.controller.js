@@ -3,9 +3,10 @@
 import mongoose from "mongoose";
 import { Course } from "../../model/course/course.model.js";
 import { User } from "../../model/user/user.model.js";
+
 import PDFDocument from 'pdfkit';
 
-import { Assignment } from "../../model/classassiment/classassiment.model.js";
+import { Assignment, Class } from "../../model/classassiment/classassiment.model.js";
 
 
 
@@ -395,3 +396,151 @@ export const getCourseById = async (req, res) => {
 
 
 
+const PASS_THRESHOLD = 40;
+
+export const getCourseStatistics = async (req, res) => {
+    try {
+        const { courseId } = req.params;
+
+        // Validate course exists and user has access
+        const course = await Course.findById(courseId);
+
+        if (!course) {
+            return res.status(404).json({ message: 'Course not found' });
+        }
+
+        // Get all enrolled students
+        const enrolledStudents = course.enrolledStudents;
+        const totalStudents = enrolledStudents.length;
+
+        if (totalStudents === 0) {
+            return res.status(200).json({
+                passed: 0,
+                failed: 0,
+                absent: 0,
+                totalStudents: 0
+            });
+        }
+
+        // Get all classes for this course
+        const allClasses = await Class.find({ course: courseId });
+        
+        // Get all assignment IDs associated with these classes
+        const assignmentIds = [];
+        for (const classItem of allClasses) {
+            // Ensure we're getting all assignment IDs from the class model
+            if (classItem.assignments && classItem.assignments.length > 0) {
+                assignmentIds.push(...classItem.assignments);
+            }
+        }
+
+        // Debug: Output assignment count
+        console.log(`Found ${assignmentIds.length} assignments for course ${courseId}`);
+
+        if (assignmentIds.length === 0) {
+            // No assignments in this course
+            return res.status(200).json({
+                passed: 0,
+                failed: 0,
+                absent: totalStudents,
+                totalStudents
+            });
+        }
+
+        // Fetch all assignments with submissions
+        const assignments = await Assignment.find({
+            _id: { $in: assignmentIds }
+        });
+
+        // Debug: Check if assignments have submissions
+        let totalSubmissions = 0;
+        assignments.forEach(a => {
+            totalSubmissions += a.submissions?.length || 0;
+        });
+        console.log(`Found ${totalSubmissions} total submissions across all assignments`);
+
+        // Initialize student performance tracking with all students marked as absent initially
+        const studentPerformance = {};
+        enrolledStudents.forEach(studentId => {
+            const studentIdStr = studentId.toString();
+            studentPerformance[studentIdStr] = {
+                totalAssignments: assignmentIds.length,
+                submittedAssignments: 0,
+                totalMarks: 0,
+                averageScore: 0,
+                status: 'absent' // Default status
+            };
+        });
+
+        // Process each assignment and its submissions
+        for (const assignment of assignments) {
+            if (!assignment.submissions || assignment.submissions.length === 0) continue;
+            
+            for (const submission of assignment.submissions) {
+                // Make sure we have a valid student reference
+                if (!submission.student) continue;
+                
+                const studentId = submission.student.toString();
+                
+                // Check if this student is enrolled in this course
+                if (studentPerformance[studentId]) {
+                    // Update the student's submission count and total marks
+                    studentPerformance[studentId].submittedAssignments += 1;
+                    
+                    // Make sure mark is a number (default to 0 if not present)
+                    const mark = typeof submission.mark === 'number' ? submission.mark : 0;
+                    studentPerformance[studentId].totalMarks += mark;
+                    
+                    // Debug output
+                    console.log(`Student ${studentId} - Assignment: ${assignment._id}, Mark: ${mark}`);
+                }
+            }
+        }
+
+        // Calculate statistics
+        let passed = 0;
+        let failed = 0;
+        let absent = 0;
+
+        // Process each student's performance
+        for (const studentId in studentPerformance) {
+            const student = studentPerformance[studentId];
+            
+            if (student.submittedAssignments === 0) {
+                // Student didn't submit any assignments
+                absent++;
+                console.log(`Student ${studentId} marked as absent`);
+            } else {
+                // Calculate average score
+                student.averageScore = student.totalMarks / student.submittedAssignments;
+                
+                // Debug
+                console.log(`Student ${studentId} - Average Score: ${student.averageScore}, Threshold: ${PASS_THRESHOLD}`);
+                
+                // Determine if passed or failed
+                if (student.averageScore >= PASS_THRESHOLD) {
+                    passed++;
+                    console.log(`Student ${studentId} marked as passed`);
+                } else {
+                    failed++;
+                    console.log(`Student ${studentId} marked as failed`);
+                }
+            }
+        }
+        
+        // Final debug
+        console.log(`Final stats - Passed: ${passed}, Failed: ${failed}, Absent: ${absent}, Total: ${totalStudents}`);
+
+        // Return statistics
+        return res.status(200).json({
+            passed,
+            failed,
+            absent,
+            totalStudents
+        });
+
+    } catch (error) {
+        console.error('Error getting course statistics:', error);
+        return res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};

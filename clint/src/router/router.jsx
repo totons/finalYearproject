@@ -28,7 +28,7 @@ import ShowAssigment from "../component/dashbord/instactor/ShowAssigment";
 import Result from "../component/dashbord/student/Result";
 import Showclass from "../component/dashbord/instactor/Showclass";
 import Show from "../component/dashbord/instactor/Show";
-
+import StudentStatistics from "../component/dashbord/instactor/StudentStatistics"
 export  const router = createBrowserRouter([
     {
       path: "/",
@@ -115,6 +115,10 @@ export  const router = createBrowserRouter([
         {
           path: '/dashboard/enrollsetudents/:courseId',
           element:<Show/>,
+        },
+        {
+          path: '/dashboard/student-statistics/:courseId',
+          element:<StudentStatistics/>,
         },
 
         {
