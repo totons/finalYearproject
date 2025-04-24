@@ -1,4 +1,3 @@
-
 import mongoose from "mongoose";
 
 
@@ -87,10 +86,3 @@ const assignmentSchema = new mongoose.Schema({
 });
 
 export const Assignment = mongoose.model('Assignment', assignmentSchema);
-
-
-
-
-
-
-

@@ -18,7 +18,7 @@ const courseSchema = new mongoose.Schema({
         ref: 'User',
         required: true,
     },
-    enrollLastDate:{
+    enrollLastDate: {
         type: Date,
         required: true,
     },
@@ -26,7 +26,6 @@ const courseSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-   
     price: {
         type: Number,
         required: true,
@@ -42,37 +41,43 @@ const courseSchema = new mongoose.Schema({
             ref: 'Class',
         }
     ],
-
-    
-   
-
-
-    assignments:[
+    assignments: [
         {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Assignment',
         },
     ],
-
     enrolledStudents: [
         {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
         },
     ],
-
-    isactive:{
+    studentMarks: [
+        {
+            student: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'User',
+                required: true,
+            },
+            attendanceMark: {
+                type: Number,
+                default: 0,
+            },
+            writtenMark: {
+                type: Number,
+                default: 0,
+            }
+        }
+    ],
+    isactive: {
         type: Boolean,
         default: false,
     },
-    rejectstudents:{
+    rejectstudents: {
         type: Boolean,
         default: false,
     }
-
-    
 }, { timestamps: true });
-
-
 
 export const Course = mongoose.model('Course', courseSchema);

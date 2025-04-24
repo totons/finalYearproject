@@ -70,7 +70,7 @@ const StudentStatistics = () => {
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold">Student Statistics</h1>
                 <Link 
-                    to={`/dashboard/courses/${courseId}/students`}
+                    to={`/dashboard/enrollsetudents/${courseId}`}
                     className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
                 >
                     Back to Students

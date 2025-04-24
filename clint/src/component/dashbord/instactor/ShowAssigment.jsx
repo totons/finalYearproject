@@ -6,15 +6,27 @@ import axios from 'axios';
 const ShowAssignment = () => {
     const { courseId, studentId } = useParams();
     const [students, setStudents] = useState([]);
+    console.log()
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [marks, setMarks] = useState({});
     const [submittedMarks, setSubmittedMarks] = useState({});
-    const [total, setTotal] = useState(0); // Adjust this to store a number
-    const [showResults, setShowResults] = useState(false); // State to trigger the total marks fetch
+    const [total, setTotal] = useState(0);
+    const [showResults, setShowResults] = useState(false);
+    const [writtenMark, setWrittenMark] = useState(0);
+    const [attendanceMark, setAttendanceMark] = useState(0);
+    
+    const [additionalMarksLoaded, setAdditionalMarksLoaded] = useState(false);
     const token = Cookies.get('token');
     const navigate = useNavigate();
+    let x = 0;
 
+    if (Array.isArray(students) && students.length > 0 && students[0].assignments) {
+      x = students[0].assignments.length;
+    }
+    
+    console.log('Assignment count:', x);
+    // Fetch enrolled students
     useEffect(() => {
         const fetchEnrolledStudents = async () => {
             try {
@@ -37,6 +49,39 @@ const ShowAssignment = () => {
         fetchEnrolledStudents();
     }, [courseId, token]);
 
+    // Fetch additional marks (written and attendance) - separate useEffect to ensure it runs on component load
+    useEffect(() => {
+        const fetchAdditionalMarks = async () => {
+            if (studentId && courseId) {
+                try {
+                    const response = await axios.get(
+                       `http://127.0.0.1:5004/course/${courseId}/${studentId}`
+                    );
+                    
+                    console.log(`dara ${response}`)
+                    setWrittenMark(response.data.writtenMark || 0);
+                    setAttendanceMark(response.data.attendanceMark || 0);
+                    
+                   
+                    setAdditionalMarksLoaded(true);
+                } catch (err) {
+                    if (err.response?.status === 404) {
+                        // This is normal for new students - just set defaults
+                        setWrittenMark(0);
+                        setAttendanceMark(0);
+                        console.log("No existing marks found for this student - this is normal for new students");
+                    } else {
+                        console.error('Error fetching additional marks:', err);
+                    }
+                    setAdditionalMarksLoaded(true);
+                }
+            }
+        };
+    
+        fetchAdditionalMarks();
+    }, [courseId, studentId]);
+
+    // Fetch total marks separately
     useEffect(() => {
         const fetchTotalMarks = async () => {
             if (studentId && courseId) {
@@ -44,17 +89,16 @@ const ShowAssignment = () => {
                     const response = await axios.get(
                         `http://127.0.0.1:5004/user/${studentId}/${courseId}`
                     );
-                    setTotal(response.data.totalMark || 0); // Assuming response.data.totalMark contains the total
+                    setTotal(response.data.totalMark || 0);
                 } catch (err) {
-                    setError(err.response?.data?.message || 'Failed to fetch student marks.');
+                    console.error('Error fetching total marks:', err);
                 }
             }
         };
 
-        if (showResults) {
-            fetchTotalMarks();
-        }
-    }, [studentId, courseId, showResults]); // This will trigger when the button is clicked
+        // Fetch total marks on load and when showResults changes
+        fetchTotalMarks();
+    }, [studentId, courseId, showResults]);
 
     const handleMarkChange = (submissionId, value) => {
         setMarks((prevMarks) => ({
@@ -93,6 +137,52 @@ const ShowAssignment = () => {
         }
     };
 
+    const handleWrittenMarkChange = (e) => {
+        setWrittenMark(e.target.value);
+    };
+
+    const handleAttendanceMarkChange = (e) => {
+        setAttendanceMark(e.target.value);
+    };
+
+    const handleSubmitAdditionalMarks = async () => {
+        if ((isNaN(writtenMark) || writtenMark === '') || (isNaN(attendanceMark) || attendanceMark === '')) {
+            setError('Please enter valid marks for written and attendance.');
+            return;
+        }
+
+        try {
+            const response = await axios.post(
+                `http://127.0.0.1:5004/course/${courseId}`,
+                { 
+                    studentId: studentId,
+                    writtenMark: parseInt(writtenMark, 10),
+                    attendanceMark: parseInt(attendanceMark, 10)
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+            setError('');
+            alert('Additional marks submitted successfully');
+            
+            // Recalculate total
+            setTotal((prevTotal) => {
+                const assignmentMarks = prevTotal - (parseInt(writtenMark) || 0) - (parseInt(attendanceMark) || 0);
+                return assignmentMarks + parseInt(writtenMark, 10) + parseInt(attendanceMark, 10);
+            });
+            
+            setShowResults(true);
+        } catch (err) {
+            setError(err.response?.data?.message || 'Failed to submit additional marks.');
+        }
+    };
+
+    // Calculate assignment marks (total minus additional marks)
+    const assignmentMarks = total ;
+
     // Display loading and error states
     if (loading) return <div>Loading...</div>;
     if (error) return <div>Error: {error}</div>;
@@ -110,7 +200,9 @@ const ShowAssignment = () => {
                 </thead>
                 <tbody>
                     {students.map((studentClass) =>
+                    
                         studentClass.assignments.length > 0 ? (
+                            
                             studentClass.assignments.map((assignment) => (
                                 <tr key={assignment._id} className="hover:bg-gray-100">
                                     <td className="border border-gray-300 px-4 py-2">{studentClass.title}</td>
@@ -175,15 +267,54 @@ const ShowAssignment = () => {
                 </tbody>
             </table>
 
-            <div className="mt-4 bg-gray-100 p-4 rounded">
+            <div className="mt-6 p-4 bg-gray-50 border rounded-md">
+                <h3 className="text-lg font-semibold mb-4">Additional Marks</h3>
+                <div className="flex flex-col md:flex-row gap-4">
+                    <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Written Mark</label>
+                        <input
+                            type="number"
+                            min="0"
+                            value={writtenMark}
+                            onChange={handleWrittenMarkChange}
+                            className="w-full border rounded px-3 py-2"
+                            placeholder="Enter written mark"
+                        />
+                    </div>
+                    <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Attendance Mark</label>
+                        <input
+                            type="number"
+                            min="0"
+                            value={attendanceMark}
+                            onChange={handleAttendanceMarkChange}
+                            className="w-full border rounded px-3 py-2"
+                            placeholder="Enter attendance mark"
+                        />
+                    </div>
+                </div>
+                <button
+                    onClick={handleSubmitAdditionalMarks}
+                    className="mt-4 bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded"
+                >
+                    Submit Additional Marks
+                </button>
+            </div>
+
+            <div className="mt-6  bg-gray-100 p-4 rounded">
                 <button
                     onClick={() => setShowResults(true)}
-                    className="text-white bg-blue-500 p-2 rounded hover:bg-blue-600"
+                    className="text-white hidden bg-blue-500 p-2 rounded hover:bg-blue-600"
                 >
                     Show Result
                 </button>
-                <div className="mt-4">
-                    <strong>Total Marks for Course:</strong> {total}
+                <div className="mt-4 space-y-2">
+                    <div><strong>Assignment Marks:</strong> {(assignmentMarks)/(x)}</div>
+                    <div><strong>Written Mark:</strong> {writtenMark}</div>
+                    <div><strong>Attendance Mark:</strong> {attendanceMark}</div>
+                    {/* <div className="pt-2 text-lg font-bold border-t border-gray-300">
+                        <strong>Total Marks for Course:</strong> {total}
+                    </div> */}
                 </div>
             </div>
         </div>

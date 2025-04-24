@@ -16,9 +16,8 @@ export const generateStudentPDF = async (req, res) => {
 
         // Fetch course details and enrolled students
         const course = await Course.findById(courseId)
-    .populate('enrolledStudents') // Populating enrolled students
-    .populate('instructor'); // Populating instructor
-
+            .populate('enrolledStudents') // Populating enrolled students
+            .populate('instructor'); // Populating instructor
 
         if (!course) {
             return res.status(404).json({ error: 'Course not found' });
@@ -44,18 +43,27 @@ export const generateStudentPDF = async (req, res) => {
         doc.font('Helvetica-Bold').fontSize(16).fillColor('#0056b3')
             .text(`Course Name - ${course.title}`, { align: 'center' });
         doc.font('Helvetica-Bold').fontSize(16).fillColor('#0056b3')
-            .text(`Instractor Name - ${course.instructor.fullname}`, { align: 'center' });
+            .text(`Instructor Name - ${course.instructor.fullname}`, { align: 'center' });
        
         doc.fillColor('black');
 
         // **Define Table Columns**
-        const startX = 50;
+        const startX = 10;
         const startY = 150;
         const rowHeight = 30;
 
-        // Dynamic width calculation: divide the width by the number of assignments
-        const availableWidth = 300; // Set a reasonable available width for assignments columns
-        const colWidths = [50, 180, ...Array(assignments.length).fill(availableWidth / assignments.length)];
+        // Dynamic width calculation with additional columns for attendance and written marks
+        const availableWidth = 250; // Reduced available width for assignments to accommodate new columns
+        
+        // Column widths array with additional columns for attendance and written marks
+        const colWidths = [
+            40, // S.No
+            120, // Full Name
+            ...Array(assignments.length).fill(availableWidth / assignments.length), // Assignments
+            60, // Attendance Mark
+            60, // Written Mark
+            60  // Total Mark
+        ];
 
         let x = startX;
         let y = startY;
@@ -75,6 +83,13 @@ export const generateStudentPDF = async (req, res) => {
             x += colWidths[i + 2];
         });
 
+        // Add Attendance and Written headers
+        doc.text('Attend.', x, y + 8, { width: colWidths[colWidths.length - 3], align: 'center' });
+        x += colWidths[colWidths.length - 3];
+        doc.text('Written', x, y + 8, { width: colWidths[colWidths.length - 2], align: 'center' });
+        x += colWidths[colWidths.length - 2];
+        doc.text('Total', x, y + 8, { width: colWidths[colWidths.length - 1], align: 'center' });
+
         doc.fillColor('black').stroke();
         y += rowHeight;
 
@@ -86,6 +101,34 @@ export const generateStudentPDF = async (req, res) => {
                 doc.fillColor('black');
             }
 
+            // Find student marks in course.studentMarks
+            const studentMark = course.studentMarks?.find(mark => 
+                mark.student.toString() === student._id.toString()
+            ) || { attendanceMark: 0, writtenMark: 0 };
+            
+            const attendanceMark = studentMark.attendanceMark || 0;
+            const writtenMark = studentMark.writtenMark || 0;
+            
+            // Calculate total assignment marks
+            let totalAssignmentMark = 0;
+            let assignmentCount = 0;
+            
+            assignments.forEach(assignment => {
+                const submission = assignment.submissions.find(sub => 
+                    sub.student._id.toString() === student._id.toString()
+                );
+                if (submission && submission.mark !== null && submission.mark !== undefined) {
+                    totalAssignmentMark += submission.mark;
+                    assignmentCount++;
+                }
+            });
+            
+            // Calculate average assignment mark (if applicable)
+            const avgAssignmentMark = assignmentCount > 0 ? totalAssignmentMark / assignmentCount : 0;
+            
+            // Calculate total mark (attendance + written + average assignment)
+            const totalMark = attendanceMark + writtenMark + avgAssignmentMark;
+
             x = startX;
             doc.text(index + 1, x, y + 8, { width: colWidths[0], align: 'center' });
             x += colWidths[0];
@@ -93,14 +136,17 @@ export const generateStudentPDF = async (req, res) => {
             doc.text(student.fullname || 'N/A', x, y + 8, { width: colWidths[1], align: 'center' });
             x += colWidths[1];
 
+            // Assignment marks
             assignments.forEach((assignment, i) => {
-                const submission = assignment.submissions.find(sub => sub.student._id.toString() === student._id.toString());
+                const submission = assignment.submissions.find(sub => 
+                    sub.student._id.toString() === student._id.toString()
+                );
                 const mark = submission ? submission.mark : null;
                 let markText = '-';
 
                 if (mark !== null) {
                     const status = mark >= 40 ? '(P)' : '(F)';
-                    markText = `${mark} ${status}`;
+                    markText = `${mark} `;
                 }
 
                 // **Text color change based on Pass/Fail**
@@ -110,17 +156,81 @@ export const generateStudentPDF = async (req, res) => {
                 x += colWidths[i + 2];
             });
 
+            // Add attendance mark
+            doc.fillColor('black').text(attendanceMark.toString(), x, y + 8, { width: colWidths[colWidths.length - 3], align: 'center' });
+            x += colWidths[colWidths.length - 3];
+            
+            // Add written mark
+            doc.text(writtenMark.toString(), x, y + 8, { width: colWidths[colWidths.length - 2], align: 'center' });
+            x += colWidths[colWidths.length - 2];
+            
+            // Add total mark with color coding
+            const isPassed = totalMark >= 40;
+            doc.fillColor(isPassed ? 'green' : 'red').text(
+                totalMark.toFixed(1) + (isPassed ? ' (P)' : ' (F)'), 
+                x, y + 8, 
+                { width: colWidths[colWidths.length - 1], align: 'center' }
+            );
+
             doc.stroke();
             y += rowHeight;
+            
+            // Check if we need to start a new page
+            if (y > doc.page.height - 50) {
+                doc.addPage();
+                y = 50; // Reset Y position for the new page
+            }
         });
 
+        // Add a summary section at the end
+        y += 10;
+        // doc.fillColor('black').font('Helvetica-Bold').fontSize(14)
+        //     .text('Course Summary', startX, y);
+        
+        // y += 20;
+        // doc.font('Helvetica').fontSize(12);
+        
+        // // Calculate pass/fail statistics
+        // let passedCount = 0;
+        // let failedCount = 0;
+        
+        // course.enrolledStudents.forEach(student => {
+        //     const studentMark = course.studentMarks?.find(mark => 
+        //         mark.student.toString() === student._id.toString()
+        //     ) || { attendanceMark: 0, writtenMark: 0 };
+            
+        //     let totalAssignmentMark = 0;
+        //     let assignmentCount = 0;
+            
+        //     assignments.forEach(assignment => {
+        //         const submission = assignment.submissions.find(sub => 
+        //             sub.student._id.toString() === student._id.toString()
+        //         );
+        //         if (submission && submission.mark !== null) {
+        //             totalAssignmentMark += submission.mark;
+        //             assignmentCount++;
+        //         }
+        //     });
+            
+        //     const avgAssignmentMark = assignmentCount > 0 ? totalAssignmentMark / assignmentCount : 0;
+        //     const totalMark = studentMark.attendanceMark + studentMark.writtenMark + avgAssignmentMark;
+            
+        //     if (totalMark >= 40) passedCount++;
+        //     else failedCount++;
+        // });
+        
+        // doc.text(`Total Students: ${course.enrolledStudents.length}`, startX, y);
+        // y += 20;
+        // doc.text(`Passed: ${passedCount} (${((passedCount / course.enrolledStudents.length) * 100).toFixed(1)}%)`, startX, y);
+        // y += 20;
+        // doc.text(`Failed: ${failedCount} (${((failedCount / course.enrolledStudents.length) * 100).toFixed(1)}%)`, startX, y);
+        
         doc.end();
     } catch (error) {
         console.error('PDF Generation Error:', error);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 };
-
 // Add a new course (by instructor)
 export const addCourse = async (req, res) => {
     try {
@@ -401,6 +511,7 @@ const PASS_THRESHOLD = 40;
 export const getCourseStatistics = async (req, res) => {
     try {
         const { courseId } = req.params;
+        const PASS_THRESHOLD = 40; // Add this constant that was missing
 
         // Validate course exists and user has access
         const course = await Course.findById(courseId);
@@ -418,7 +529,10 @@ export const getCourseStatistics = async (req, res) => {
                 passed: 0,
                 failed: 0,
                 absent: 0,
-                totalStudents: 0
+                totalStudents: 0,
+                averageAttendanceMark: 0,
+                averageWrittenMark: 0,
+                averageTotalMark: 0
             });
         }
 
@@ -437,13 +551,48 @@ export const getCourseStatistics = async (req, res) => {
         // Debug: Output assignment count
         console.log(`Found ${assignmentIds.length} assignments for course ${courseId}`);
 
+        // Calculate studentMarks totals and averages
+        let totalAttendanceMark = 0;
+        let totalWrittenMark = 0;
+        let totalStudentsWithMarks = 0;
+
+        if (course.studentMarks && course.studentMarks.length > 0) {
+            for (const mark of course.studentMarks) {
+                totalAttendanceMark += mark.attendanceMark || 0;
+                totalWrittenMark += mark.writtenMark || 0;
+                totalStudentsWithMarks++;
+            }
+        }
+
+        const averageAttendanceMark = totalStudentsWithMarks > 0 ? totalAttendanceMark / totalStudentsWithMarks : 0;
+        const averageWrittenMark = totalStudentsWithMarks > 0 ? totalWrittenMark / totalStudentsWithMarks : 0;
+        const averageTotalMark = totalStudentsWithMarks > 0 ? (totalAttendanceMark + totalWrittenMark) / totalStudentsWithMarks : 0;
+
         if (assignmentIds.length === 0) {
-            // No assignments in this course
+            // No assignments in this course, use only studentMarks for statistics
+            let passed = 0;
+            let failed = 0;
+            let absent = totalStudents - totalStudentsWithMarks;
+
+            if (course.studentMarks) {
+                for (const mark of course.studentMarks) {
+                    const totalMark = (mark.attendanceMark || 0) + (mark.writtenMark || 0);
+                    if (totalMark >= PASS_THRESHOLD) {
+                        passed++;
+                    } else {
+                        failed++;
+                    }
+                }
+            }
+
             return res.status(200).json({
-                passed: 0,
-                failed: 0,
-                absent: totalStudents,
-                totalStudents
+                passed,
+                failed,
+                absent,
+                totalStudents,
+                averageAttendanceMark,
+                averageWrittenMark,
+                averageTotalMark
             });
         }
 
@@ -468,9 +617,22 @@ export const getCourseStatistics = async (req, res) => {
                 submittedAssignments: 0,
                 totalMarks: 0,
                 averageScore: 0,
+                attendanceMark: 0,
+                writtenMark: 0,
                 status: 'absent' // Default status
             };
         });
+
+        // Add studentMarks data to the studentPerformance object
+        if (course.studentMarks) {
+            for (const mark of course.studentMarks) {
+                const studentIdStr = mark.student.toString();
+                if (studentPerformance[studentIdStr]) {
+                    studentPerformance[studentIdStr].attendanceMark = mark.attendanceMark || 0;
+                    studentPerformance[studentIdStr].writtenMark = mark.writtenMark || 0;
+                }
+            }
+        }
 
         // Process each assignment and its submissions
         for (const assignment of assignments) {
@@ -511,14 +673,17 @@ export const getCourseStatistics = async (req, res) => {
                 absent++;
                 console.log(`Student ${studentId} marked as absent`);
             } else {
-                // Calculate average score
+                // Calculate average score from assignments
                 student.averageScore = student.totalMarks / student.submittedAssignments;
                 
+                // Add attendance and written marks to the total score
+                const totalScore = student.averageScore + student.attendanceMark + student.writtenMark;
+                
                 // Debug
-                console.log(`Student ${studentId} - Average Score: ${student.averageScore}, Threshold: ${PASS_THRESHOLD}`);
+                console.log(`Student ${studentId} - Average Score: ${student.averageScore}, Attendance: ${student.attendanceMark}, Written: ${student.writtenMark}, Total: ${totalScore}, Threshold: ${PASS_THRESHOLD}`);
                 
                 // Determine if passed or failed
-                if (student.averageScore >= PASS_THRESHOLD) {
+                if (totalScore >= PASS_THRESHOLD) {
                     passed++;
                     console.log(`Student ${studentId} marked as passed`);
                 } else {
@@ -536,11 +701,65 @@ export const getCourseStatistics = async (req, res) => {
             passed,
             failed,
             absent,
-            totalStudents
+            totalStudents,
+            averageAttendanceMark,
+            averageWrittenMark,
+            averageTotalMark
         });
 
     } catch (error) {
         console.error('Error getting course statistics:', error);
         return res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
+
+export const addOrUpdateStudentMark = async (req, res) => {
+    const { courseId } = req.params;
+    const { studentId, attendanceMark, writtenMark } = req.body;
+
+    try {
+        const course = await Course.findById(courseId);
+        if (!course) return res.status(404).json({ message: 'Course not found' });
+
+        const existingEntry = course.studentMarks.find(
+            (mark) => mark.student.toString() === studentId
+        );
+
+        if (existingEntry) {
+            // Update existing marks
+            existingEntry.attendanceMark = attendanceMark;
+            existingEntry.writtenMark = writtenMark;
+        } else {
+            // Add new marks
+            course.studentMarks.push({ student: studentId, attendanceMark, writtenMark });
+        }
+
+        await course.save();
+        res.status(200).json({ message: 'Marks saved successfully', data: course.studentMarks });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
+
+// Controller.js
+export const getStudentMarkById = async (req, res) => {
+    const { courseId, studentId } = req.params;
+    
+    try {
+        const course = await Course.findById(courseId);
+        if (!course) return res.status(404).json({ message: 'Course not found' });
+        
+        const mark = course.studentMarks.find(
+            (m) => m.student.toString() === studentId
+        );
+        
+        if (!mark) return res.status(404).json({ message: 'Marks not found for this student' });
+        
+        res.status(200).json(mark);
+    } catch (error) {
+        console.error('Error in getStudentMarkById:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
