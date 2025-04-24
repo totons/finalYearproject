@@ -12,7 +12,8 @@ const Result = () => {
     const [totalMarks, setTotalMarks] = useState(0);
     const token = Cookies.get('token');
    const [CertificateData,setCertificateData] = useState()
-
+const [writtenMark, setWrittenMark] = useState(0);
+    const [attendanceMark, setAttendanceMark] = useState(0);
     useEffect(() => {
         const fetchEnrolledStudents = async () => {
             try {
@@ -47,6 +48,50 @@ const Result = () => {
 
         fetchEnrolledStudents();
     }, [courseId, studentId, token]);
+
+console.log(writtenMark ,attendanceMark)
+let x = 0;
+
+if (Array.isArray(students) && students.length > 0 && students[0].assignments) {
+  x = students[0].assignments.length;
+}
+
+console.log(x)
+
+let sunw1=totalMarks/x
+console.log(sunw1)
+
+    useEffect(() => {
+        const fetchAdditionalMarks = async () => {
+            if (studentId && courseId) {
+                try {
+                    const response = await axios.get(
+                       `http://127.0.0.1:5004/course/${courseId}/${studentId}`
+                    );
+                    
+                    console.log(`dara ${response}`)
+                    setWrittenMark(response.data.writtenMark || 0);
+                    setAttendanceMark(response.data.attendanceMark || 0);
+                    
+                   
+                    setAdditionalMarksLoaded(true);
+                } catch (err) {
+                    if (err.response?.status === 404) {
+                        // This is normal for new students - just set defaults
+                        setWrittenMark(0);
+                        setAttendanceMark(0);
+                        console.log("No existing marks found for this student - this is normal for new students");
+                    } else {
+                        console.error('Error fetching additional marks:', err);
+                    }
+                    setAdditionalMarksLoaded(true);
+                }
+            }
+        };
+    
+        fetchAdditionalMarks();
+    }, [courseId, studentId]);
+
 
     useEffect(() => {
         const fetchCertificateData = async () => {
@@ -112,8 +157,8 @@ const Result = () => {
             <span 
                 key={submission._id} 
                 className={submission.mark >= 40 ? "text-green-600 font-bold" : "text-red-600 font-bold"}
-            >
-                {submission.mark} {submission.mark >= 40 ? "(P)" : "(F)"}
+            >{submission.mark}
+                {/* {submission.mark} {submission.mark >= 40 ? "(P)" : "(F)"} */}
             </span>
         ) : null
     )
@@ -130,8 +175,19 @@ const Result = () => {
                 </tbody>
             </table>
 
-            <div className="flex justify-center mt-[30px]">
-                Total Marks: {totalMarks}
+            <div className=" mt-[30px]">
+            <div className="mt-4 space-y-2">
+                    <div><strong>Assignment Marks:</strong> {(totalMarks)/x}</div>
+                    <div><strong>Written Mark:</strong> {writtenMark}</div>
+                    <div><strong>Attendance Mark:</strong> {attendanceMark}</div>
+                    <div className="pt-2 text-lg font-bold border-t border-gray-300">
+  <strong>Total Marks for Course:</strong> {sunw1 + writtenMark + attendanceMark} 
+  <span className={sunw1 + writtenMark + attendanceMark >= 40 ? 'text-green-600 ml-2' : 'text-red-600 ml-2'}>
+    ({sunw1 + writtenMark + attendanceMark >= 40 ? 'Pass' : 'Fail'})
+  </span>
+</div>
+
+                </div>
             </div>
            
 

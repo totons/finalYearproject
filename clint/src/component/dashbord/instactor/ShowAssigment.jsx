@@ -26,6 +26,8 @@ const ShowAssignment = () => {
     }
     
     console.log('Assignment count:', x);
+
+    
     // Fetch enrolled students
     useEffect(() => {
         const fetchEnrolledStudents = async () => {
@@ -312,9 +314,13 @@ const ShowAssignment = () => {
                     <div><strong>Assignment Marks:</strong> {(assignmentMarks)/(x)}</div>
                     <div><strong>Written Mark:</strong> {writtenMark}</div>
                     <div><strong>Attendance Mark:</strong> {attendanceMark}</div>
-                    {/* <div className="pt-2 text-lg font-bold border-t border-gray-300">
-                        <strong>Total Marks for Course:</strong> {total}
-                    </div> */}
+                    <div className="pt-2 text-lg font-bold border-t border-gray-300">
+  <strong>Total Marks for Course:</strong> {(assignmentMarks)/(x) + writtenMark + attendanceMark} 
+  <span className={(assignmentMarks)/(x) + writtenMark + attendanceMark >= 40 ? 'text-green-600 ml-2' : 'text-red-600 ml-2'}>
+    ({(assignmentMarks)/(x) + writtenMark + attendanceMark >= 40 ? 'Pass' : 'Fail'})
+  </span>
+</div>
+
                 </div>
             </div>
         </div>
