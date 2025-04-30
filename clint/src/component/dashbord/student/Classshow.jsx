@@ -48,7 +48,7 @@ const Classshow = () => {
         alert("Assignment submitted successfully!");
       } catch (err) {
         console.error(err);
-        alert("Error submitting assignment. Please try again.");
+        alert("Already submitting assignment");
       } finally {
         setSubmittingAssignments((prev) => ({
           ...prev,

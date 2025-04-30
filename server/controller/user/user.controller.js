@@ -296,7 +296,7 @@ export const getSingleUserById = async (req, res) => {
       console.log('Found user:', user);
 
       // Log the user's courseMarks to inspect their structure
-      console.log('User courseMarks:', user.courseMarks);
+      //console.log('User courseMarks:', user.courseMarks);
 
       // Find the courseMark with the specific courseId in user's courseMarks
       const courseMark = user.courseMarks.find(mark => mark.course.toString() === courseId.toString());

@@ -213,89 +213,164 @@ export const getAssignments = async (req, res) => {
 
 // Controller function to submit markexport const submitMark = async (req, res) => {
     export const submitMark = async (req, res) => {
-        const { submissionId } = req.params; // সাবমিশন আইডি প্যারামিটার থেকে নেওয়া।
-        const { mark } = req.body; // মার্ক বডি থেকে নেওয়া।
-    
-        // মার্ক চেক করা: ০ থেকে ১০০ এর মধ্যে কিনা
+        const { submissionId } = req.params; // Submission ID from parameters
+        const { mark } = req.body; // Mark from request body
+        
+        // Validate mark: must be a number between 0 and 100
         if (typeof mark !== 'number' || isNaN(mark) || mark < 0 || mark > 100) {
-            return res.status(400).json({ message: 'মার্ক সঠিক নয়। ০ থেকে ১০০ এর মধ্যে একটি সংখ্যা দিন।' });
+            return res.status(400).json({ message: 'Invalid mark. Please provide a number between 0 and 100.' });
         }
-    
-        const session = await mongoose.startSession(); // সেশন শুরু করা।
+        
+        const session = await mongoose.startSession(); // Start a session
         session.startTransaction();
-    
+        
         try {
-            // অ্যাসাইনমেন্ট এবং কোর্সের তথ্য খুঁজে বের করা।
+            // Find assignment and related course info
             const assignment = await Assignment.findOne({ 'submissions._id': submissionId })
                 .populate({
                     path: 'class',
                     populate: { path: 'course' },
                 })
                 .session(session);
-    
+            
             if (!assignment) {
                 await session.abortTransaction();
-                return res.status(404).json({ message: 'অ্যাসাইনমেন্ট পাওয়া যায়নি।' });
+                session.endSession();
+                return res.status(404).json({ message: 'Assignment not found.' });
             }
-    
-            // সাবমিশন খুঁজে বের করা।
-            const submission = assignment.submissions.find(
+            
+            // Find the specific submission
+            const submissionIndex = assignment.submissions.findIndex(
                 (sub) => sub._id.toString() === submissionId
             );
-    
-            if (!submission) {
+            
+            if (submissionIndex === -1) {
                 await session.abortTransaction();
-                return res.status(404).json({ message: 'সাবমিশন পাওয়া যায়নি।' });
+                session.endSession();
+                return res.status(404).json({ message: 'Submission not found.' });
             }
-    
-            // মার্ক আপডেট করা।
-            submission.mark = mark;
+            
+            // Update the mark
+            assignment.submissions[submissionIndex].mark = mark;
             await assignment.save({ session });
-    
-            const studentId = submission.student; // শিক্ষার্থীর আইডি।
-            const courseId = assignment.class?.course?._id; // কোর্স আইডি।
-    
+            
+            const studentId = assignment.submissions[submissionIndex].student; // Student ID
+            const courseId = assignment.class?.course?._id; // Course ID
+            
             if (!courseId) {
-                console.error('কোর্স আইডি নেই:', assignment.class?.course);
+                console.error('Course ID not found:', assignment.class?.course);
                 await session.abortTransaction();
-                return res.status(400).json({ message: 'অ্যাসাইনমেন্টে কোর্স আইডি পাওয়া যায়নি।' });
+                session.endSession();
+                return res.status(400).json({ message: 'Course ID not found in the assignment.' });
             }
-    
-            // শিক্ষার্থী খুঁজে বের করা।
+            
+            // Find the student
             const student = await User.findById(studentId).session(session);
             if (!student) {
                 await session.abortTransaction();
-                return res.status(404).json({ message: 'শিক্ষার্থী পাওয়া যায়নি।' });
+                session.endSession();
+                return res.status(404).json({ message: 'Student not found.' });
             }
-    
-            // শিক্ষার্থীর `courseMarks` আপডেট করা।
+            
+            // Find all assignments for this course
+            const allAssignments = await Assignment.find({
+                class: assignment.class._id
+            }).session(session);
+            
+            // Array to collect ALL marks for this student (including the current one)
+            let allMarksWithDetails = [];
+            
+            // Gather marks from all assignments for this student
+            for (const assign of allAssignments) {
+                const studentSubmissions = assign.submissions.filter(
+                    sub => sub.student.toString() === studentId.toString() && 
+                          typeof sub.mark === 'number' && 
+                          !isNaN(sub.mark)
+                );
+                
+                for (const sub of studentSubmissions) {
+                    allMarksWithDetails.push({
+                        assignmentId: assign._id,
+                        assignmentTitle: assign.title,
+                        submissionId: sub._id,
+                        mark: sub.mark,
+                        submittedAt: sub.submittedAt || null,
+                        isCurrent: sub._id.toString() === submissionId ? true : false
+                    });
+                }
+            }
+            
+            console.log(`All marks collected: ${JSON.stringify(allMarksWithDetails)}`);
+            
+            // Extract just the marks for calculations
+            const allMarks = allMarksWithDetails.map(item => item.mark);
+            console.log(`All marks for calculation: ${JSON.stringify(allMarks)}`);
+            
+            // Sort marks from highest to lowest
+            const sortedMarks = [...allMarks].sort((a, b) => b - a);
+            console.log(`Sorted marks (highest to lowest): ${JSON.stringify(sortedMarks)}`);
+            
+            // Calculate total mark based on the top two marks
+            let totalMark = 0;
+            
+            // If there are at least 2 marks, average the top 2
+            if (sortedMarks.length >= 2) {
+                console.log(`Using top two marks: ${sortedMarks[0]} and ${sortedMarks[1]}`);
+                totalMark = (sortedMarks[0] + sortedMarks[1]) / 2;
+                console.log(`Calculated total mark (average of top 2): ${totalMark}`);
+            } else if (sortedMarks.length === 1) {
+                totalMark = sortedMarks[0];
+                console.log(`Using single mark: ${totalMark}`);
+            } else {
+                // This case shouldn't happen now, but keeping as fallback
+                totalMark = mark;
+                console.log(`Fallback: using current mark: ${totalMark}`);
+            }
+            
+            // Update student's courseMarks
+            if (!student.courseMarks) {
+                student.courseMarks = [];
+            }
+            
             const courseMarkIndex = student.courseMarks.findIndex(
                 (cm) => cm.course.toString() === courseId.toString()
             );
-    
+            
             if (courseMarkIndex !== -1) {
-                // কোর্স ইতোমধ্যে আছে, তাই মার্ক যোগ করা হচ্ছে।
-                student.courseMarks[courseMarkIndex].totalMark += mark;
+                // Update existing course mark
+                student.courseMarks[courseMarkIndex].totalMark = totalMark;
             } else {
-                // নতুন কোর্স এবং মার্ক যোগ করা।
-                student.courseMarks.push({ course: courseId, totalMark: mark });
+                // Add new course and mark
+                student.courseMarks.push({ course: courseId, totalMark });
             }
-    
-            // শিক্ষার্থীর ডেটা সেভ করা।
+            
+            // Save student data
             await student.save({ session });
-    
+            
             await session.commitTransaction();
             session.endSession();
-    
-            return res.status(200).json({ message: 'মার্ক সফলভাবে জমা হয়েছে।' });
+            
+            // Prepare more detailed response for debugging
+            return res.status(200).json({ 
+                message: 'Mark submitted successfully.',
+                totalMark,
+                assignmentCount: allMarks.length,
+                allMarks: allMarksWithDetails,  // Return detailed information about all marks
+                sortedMarks: sortedMarks,     // All marks sorted high to low
+                topMarks: sortedMarks.length >= 2 ? [sortedMarks[0], sortedMarks[1]] : sortedMarks,
+                calculationExplanation: sortedMarks.length >= 2 
+                    ? `Total mark calculated as (${sortedMarks[0]} + ${sortedMarks[1]}) / 2 = ${totalMark}`
+                    : sortedMarks.length === 1 
+                        ? `Total mark is the single mark: ${sortedMarks[0]}` 
+                        : `No previous marks found, using current mark: ${mark}`
+            });
         } catch (err) {
             await session.abortTransaction();
             session.endSession();
-            console.error('submitMark এ ত্রুটি:', err);
-            return res.status(500).json({ message: 'সার্ভার ত্রুটি' });
+            console.error('Error in submitMark:', err);
+            return res.status(500).json({ message: 'Server error', error: err.message });
         }
     };
-    
 
 
 

@@ -75,8 +75,8 @@ const AllCourse = () => {
                         <tr className="bg-blue-600 text-white">
                             <th className="p-4">#</th>
                             <th className="p-4">Title</th>
-                            <th className="p-4">Price</th>
-                            <th className="p-4">Rating</th>
+                            {/* <th className="p-4">Price</th>
+                            <th className="p-4">Rating</th> */}
                             <th className="p-4">Skills</th>
                             <th className="p-4">Enrollment Last Date</th>
                             <th className="p-4">Status</th>
@@ -87,10 +87,10 @@ const AllCourse = () => {
                         {courses.map((course, index) => (
                             <tr key={course._id} className="border-b hover:bg-gray-100 transition-colors">
                                 <td className="p-4 text-center font-semibold text-gray-700">{index + 1}</td>
-                                <td className="p-4 font-medium text-gray-800">{course.title}</td>
-                                <td className="p-4 text-center text-green-600 font-bold">${course.price}</td>
-                                <td className="p-4 text-center text-yellow-500 font-medium">{course.rating}</td>
-                                <td className="p-4 text-gray-700">{course.skills}</td>
+                                <td className="p-4 text-center font-medium text-gray-800">{course.title}</td>
+                                {/* <td className="p-4 text-center text-green-600 font-bold">${course.price}</td>
+                                <td className="p-4 text-center text-yellow-500 font-medium">{course.rating}</td> */}
+                                <td className="p-4 text-center text-gray-700">{course.skills}</td>
                                 <td className="p-4 text-center text-gray-700">{new Date(course.enrollLastDate).toLocaleDateString()}</td>
                                 <td className="p-4 text-center">
     <span className={`px-3 py-1 rounded-full text-white ${course.isactive ? 'bg-green-500' : 'bg-red-500'}`}>

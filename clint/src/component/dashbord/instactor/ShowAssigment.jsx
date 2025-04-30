@@ -1,106 +1,112 @@
-import React, { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import React, { useEffect, useState, useCallback } from 'react';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import axios from 'axios';
 
 const ShowAssignment = () => {
     const { courseId, studentId } = useParams();
+    const navigate = useNavigate();
     const [students, setStudents] = useState([]);
-    console.log()
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [marks, setMarks] = useState({});
     const [submittedMarks, setSubmittedMarks] = useState({});
     const [total, setTotal] = useState(0);
-    const [showResults, setShowResults] = useState(false);
     const [writtenMark, setWrittenMark] = useState(0);
     const [attendanceMark, setAttendanceMark] = useState(0);
-    
     const [additionalMarksLoaded, setAdditionalMarksLoaded] = useState(false);
     const token = Cookies.get('token');
-    const navigate = useNavigate();
-    let x = 0;
-
+    
+    // Calculate number of assignments for averaging
+    let assignmentCount = 0;
     if (Array.isArray(students) && students.length > 0 && students[0].assignments) {
-      x = students[0].assignments.length;
+      assignmentCount = students[0].assignments.length;
     }
-    
-    console.log('Assignment count:', x);
 
-    
-    // Fetch enrolled students
-    useEffect(() => {
-        const fetchEnrolledStudents = async () => {
-            try {
-                const response = await axios.get(
-                    `http://127.0.0.1:5004/course/courses/${courseId}/students`,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
-                    }
-                );
-                setStudents(response.data.classes);
-            } catch (err) {
-                setError(err.response?.data?.message || 'Failed to fetch enrolled students.');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchEnrolledStudents();
+    // Separate functions for each API call for better error handling
+    const fetchStudentsAndAssignments = useCallback(async () => {
+        try {
+            const response = await axios.get(
+                `http://127.0.0.1:5004/course/courses/${courseId}/students`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+            setStudents(response.data.classes);
+            return true;
+        } catch (err) {
+            console.error('Error fetching students:', err);
+            setError(err.response?.data?.message || 'Failed to fetch students.');
+            return false;
+        }
     }, [courseId, token]);
 
-    // Fetch additional marks (written and attendance) - separate useEffect to ensure it runs on component load
-    useEffect(() => {
-        const fetchAdditionalMarks = async () => {
-            if (studentId && courseId) {
-                try {
-                    const response = await axios.get(
-                       `http://127.0.0.1:5004/course/${courseId}/${studentId}`
-                    );
-                    
-                    console.log(`dara ${response}`)
-                    setWrittenMark(response.data.writtenMark || 0);
-                    setAttendanceMark(response.data.attendanceMark || 0);
-                    
-                   
-                    setAdditionalMarksLoaded(true);
-                } catch (err) {
-                    if (err.response?.status === 404) {
-                        // This is normal for new students - just set defaults
-                        setWrittenMark(0);
-                        setAttendanceMark(0);
-                        console.log("No existing marks found for this student - this is normal for new students");
-                    } else {
-                        console.error('Error fetching additional marks:', err);
-                    }
-                    setAdditionalMarksLoaded(true);
-                }
+    const fetchAdditionalMarks = useCallback(async () => {
+        if (!studentId || !courseId) return false;
+        
+        try {
+            const response = await axios.get(
+                `http://127.0.0.1:5004/course/${courseId}/${studentId}`
+            );
+            setWrittenMark(response.data.writtenMark || 0);
+            setAttendanceMark(response.data.attendanceMark || 0);
+            setAdditionalMarksLoaded(true);
+            return true;
+        } catch (err) {
+            if (err.response?.status === 404) {
+                setWrittenMark(0);
+                setAttendanceMark(0);
+                console.log("No existing marks found for this student - normal for new students");
+                setAdditionalMarksLoaded(true);
+                return true;
             }
-        };
-    
-        fetchAdditionalMarks();
+            console.error('Error fetching additional marks:', err);
+            return false;
+        }
     }, [courseId, studentId]);
 
-    // Fetch total marks separately
-    useEffect(() => {
-        const fetchTotalMarks = async () => {
-            if (studentId && courseId) {
-                try {
-                    const response = await axios.get(
-                        `http://127.0.0.1:5004/user/${studentId}/${courseId}`
-                    );
-                    setTotal(response.data.totalMark || 0);
-                } catch (err) {
-                    console.error('Error fetching total marks:', err);
-                }
-            }
-        };
+    const fetchTotalMarks = useCallback(async () => {
+        try {
+            const response = await axios.get(
+                `http://127.0.0.1:5004/user/${studentId}/${courseId}`
+            );
+            setTotal(response.data.totalMark || 0);
+            return true;
+        } catch (err) {
+            console.error('Error fetching total marks:', err);
+            return false;
+        }
+    }, [courseId, studentId]);
 
-        // Fetch total marks on load and when showResults changes
-        fetchTotalMarks();
-    }, [studentId, courseId, showResults]);
+    // Consolidated fetch function to reload all data
+    const fetchAllData = useCallback(async () => {
+        setLoading(true);
+        
+        try {
+            // Execute all fetch operations
+            const results = await Promise.all([
+                fetchStudentsAndAssignments(),
+                fetchAdditionalMarks(),
+                fetchTotalMarks()
+            ]);
+            
+            // Check if any fetch operation failed
+            if (results.some(result => !result)) {
+                console.log("Some data fetching operations failed");
+            }
+        } catch (error) {
+            console.error("Error fetching data:", error);
+        } finally {
+            setLoading(false);
+        }
+    }, [fetchStudentsAndAssignments, fetchAdditionalMarks, fetchTotalMarks]);
+
+    // Initial data load
+    useEffect(() => {
+        fetchAllData();
+    }, [fetchAllData]);
 
     const handleMarkChange = (submissionId, value) => {
         setMarks((prevMarks) => ({
@@ -126,14 +132,19 @@ const ShowAssignment = () => {
                     },
                 }
             );
-            setError('');
-            alert(response.data.message);
-            navigate(`/dashboard/enrollsetudent/${courseId}`);
+            
+            // Store submitted mark in local state
             setSubmittedMarks((prev) => ({
                 ...prev,
                 [submissionId]: true,
             }));
-            setTotal((prevTotal) => prevTotal + parseInt(mark, 10));
+            
+            // Show success message
+            alert(response.data.message);
+            
+            // Refresh all data
+            fetchAllData();
+            
         } catch (err) {
             setError(err.response?.data?.message || 'An error occurred.');
         }
@@ -153,8 +164,12 @@ const ShowAssignment = () => {
             return;
         }
 
+        setLoading(true);
+        let submissionSuccessful = false;
+        
         try {
-            const response = await axios.post(
+            // First, try to submit the additional marks
+            await axios.post(
                 `http://127.0.0.1:5004/course/${courseId}`,
                 { 
                     studentId: studentId,
@@ -167,27 +182,64 @@ const ShowAssignment = () => {
                     },
                 }
             );
-            setError('');
-            alert('Additional marks submitted successfully');
             
-            // Recalculate total
-            setTotal((prevTotal) => {
-                const assignmentMarks = prevTotal - (parseInt(writtenMark) || 0) - (parseInt(attendanceMark) || 0);
-                return assignmentMarks + parseInt(writtenMark, 10) + parseInt(attendanceMark, 10);
-            });
+            // Show success message
+            alert('Written and Attendance marks added successfully!');
+            submissionSuccessful = true;
             
-            setShowResults(true);
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to submit additional marks.');
+            alert( (err.response?.data?.message || 'Unknown error'));
+            console.error('Error submitting additional marks:', err);
+        }
+        
+        // Whether the submission succeeded or failed, refresh all data
+        console.log("Refreshing all data after submission attempt...");
+        
+        try {
+            // Get students and assignments
+            const studentsResponse = await axios.get(
+                `http://127.0.0.1:5004/course/courses/${courseId}/students`,
+                {
+                    headers: { Authorization: `Bearer ${token}` }
+                }
+            );
+            setStudents(studentsResponse.data.classes);
+            console.log("Students data refreshed");
+            
+            // Get additional marks
+            const additionalMarksResponse = await axios.get(
+                `http://127.0.0.1:5004/course/${courseId}/${studentId}`
+            );
+            setWrittenMark(additionalMarksResponse.data.writtenMark || 0);
+            setAttendanceMark(additionalMarksResponse.data.attendanceMark || 0);
+            console.log("Additional marks refreshed");
+            
+            // Get total marks
+            const totalMarksResponse = await axios.get(
+                `http://127.0.0.1:5004/user/${studentId}/${courseId}`
+            );
+            setTotal(totalMarksResponse.data.totalMark || 0);
+            console.log("Total marks refreshed");
+            
+        } catch (refreshError) {
+            console.error("Error refreshing data:", refreshError);
+            if (submissionSuccessful) {
+                alert("Marks submitted successfully, but there was an error refreshing the displayed data.");
+            }
+        } finally {
+            setLoading(false);
         }
     };
 
-    // Calculate assignment marks (total minus additional marks)
-    const assignmentMarks = total ;
+    // Calculate assignment marks (total marks / number of assignments)
+    //  const assignmentMarks = assignmentCount > 0 ? total / assignmentCount : 0;
+    
+    // Calculate total course marks
+    const totalCourseMarks = total + parseInt(writtenMark || 0) + parseInt(attendanceMark || 0);
 
     // Display loading and error states
-    if (loading) return <div>Loading...</div>;
-    if (error) return <div>Error: {error}</div>;
+    if (loading) return <div className="p-4 text-center">Loading data...</div>;
+    if (error) return <div className="p-4 text-red-500">Error: {error}</div>;
 
     return (
         <div className="p-4">
@@ -202,9 +254,7 @@ const ShowAssignment = () => {
                 </thead>
                 <tbody>
                     {students.map((studentClass) =>
-                    
                         studentClass.assignments.length > 0 ? (
-                            
                             studentClass.assignments.map((assignment) => (
                                 <tr key={assignment._id} className="hover:bg-gray-100">
                                     <td className="border border-gray-300 px-4 py-2">{studentClass.title}</td>
@@ -297,30 +347,24 @@ const ShowAssignment = () => {
                 </div>
                 <button
                     onClick={handleSubmitAdditionalMarks}
-                    className="mt-4 bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded"
+                    disabled={loading}
+                    className={`mt-4 ${loading ? 'bg-gray-400' : 'bg-green-500 hover:bg-green-600'} text-white py-2 px-4 rounded`}
                 >
-                    Submit Additional Marks
+                    {loading ? 'Submitting...' : 'Submit Additional Marks'}
                 </button>
             </div>
 
-            <div className="mt-6  bg-gray-100 p-4 rounded">
-                <button
-                    onClick={() => setShowResults(true)}
-                    className="text-white hidden bg-blue-500 p-2 rounded hover:bg-blue-600"
-                >
-                    Show Result
-                </button>
+            <div className="mt-6 bg-gray-100 p-4 rounded">
                 <div className="mt-4 space-y-2">
-                    <div><strong>Assignment Marks:</strong> {(assignmentMarks)/(x)}</div>
+                    <div><strong>Assignment Marks:</strong> {total}</div>
                     <div><strong>Written Mark:</strong> {writtenMark}</div>
                     <div><strong>Attendance Mark:</strong> {attendanceMark}</div>
                     <div className="pt-2 text-lg font-bold border-t border-gray-300">
-  <strong>Total Marks for Course:</strong> {(assignmentMarks)/(x) + writtenMark + attendanceMark} 
-  <span className={(assignmentMarks)/(x) + writtenMark + attendanceMark >= 40 ? 'text-green-600 ml-2' : 'text-red-600 ml-2'}>
-    ({(assignmentMarks)/(x) + writtenMark + attendanceMark >= 40 ? 'Pass' : 'Fail'})
-  </span>
-</div>
-
+                        <strong>Total Marks for Course:</strong> {totalCourseMarks.toFixed(2)} 
+                        <span className={totalCourseMarks >= 40 ? 'text-green-600 ml-2' : 'text-red-600 ml-2'}>
+                            ({totalCourseMarks >= 40 ? 'Pass' : 'Fail'})
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>
