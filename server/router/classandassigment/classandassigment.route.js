@@ -5,6 +5,7 @@ import { addAssignment, addClass, getAssignments, getClasses, submitAssignment,s
 import multer from 'multer';
 import path from 'path';
 import { isAuthenticated } from '../../midelware/user.auth.js';
+import { Assignment } from '../../model/classassiment/classassiment.model.js';
 
 const router = express.Router();
 
@@ -39,6 +40,24 @@ router.post(
 router.get('/:courseId/assignments', getAssignments);
 
 router.patch('/assignments/submit-mark/:submissionId/:studentId', submitMark);
+
+
+// PUT or PATCH: /api/assignments/:assignmentId/submissions/:submissionId/review
+
+router.patch(
+  "/assignments/:assignmentId/submissions/:submissionId/review",
+  async (req, res) => {
+    const { assignmentId, submissionId } = req.params;
+    const { review } = req.body;
+    console.log(review)
+
+    const assignment = await Assignment.findById(assignmentId);
+    const sub = assignment.submissions.id(submissionId);
+    sub.review = review;
+    await assignment.save();
+    res.json({ message: "Review updated successfully" });
+  }
+);
 
 
 

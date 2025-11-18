@@ -272,10 +272,19 @@ export const getAssignments = async (req, res) => {
                 return res.status(404).json({ message: 'Student not found.' });
             }
             
-            // Find all assignments for this course
-            const allAssignments = await Assignment.find({
-                class: assignment.class._id
+            // Get all classes related to this course
+            const allClasses = await Class.find({ 
+                course: courseId 
             }).session(session);
+            
+            const classIds = allClasses.map(cls => cls._id);
+            
+            // Find all assignments for all classes of this course
+            const allAssignments = await Assignment.find({
+                class: { $in: classIds }
+            }).session(session);
+            
+            console.log(`Found ${allAssignments.length} assignments across ${classIds.length} classes for course ${courseId}`);
             
             // Array to collect ALL marks for this student (including the current one)
             let allMarksWithDetails = [];
@@ -292,6 +301,7 @@ export const getAssignments = async (req, res) => {
                     allMarksWithDetails.push({
                         assignmentId: assign._id,
                         assignmentTitle: assign.title,
+                        classId: assign.class,
                         submissionId: sub._id,
                         mark: sub.mark,
                         submittedAt: sub.submittedAt || null,
@@ -300,7 +310,7 @@ export const getAssignments = async (req, res) => {
                 }
             }
             
-            console.log(`All marks collected: ${JSON.stringify(allMarksWithDetails)}`);
+            console.log(`All marks collected across classes: ${JSON.stringify(allMarksWithDetails)}`);
             
             // Extract just the marks for calculations
             const allMarks = allMarksWithDetails.map(item => item.mark);
@@ -350,12 +360,23 @@ export const getAssignments = async (req, res) => {
             await session.commitTransaction();
             session.endSession();
             
+            // Group assignments by class for the response
+            const assignmentsByClass = {};
+            allMarksWithDetails.forEach(mark => {
+                const classId = mark.classId.toString();
+                if (!assignmentsByClass[classId]) {
+                    assignmentsByClass[classId] = [];
+                }
+                assignmentsByClass[classId].push(mark);
+            });
+            
             // Prepare more detailed response for debugging
             return res.status(200).json({ 
                 message: 'Mark submitted successfully.',
                 totalMark,
                 assignmentCount: allMarks.length,
                 allMarks: allMarksWithDetails,  // Return detailed information about all marks
+                assignmentsByClass: assignmentsByClass, // Marks grouped by class
                 sortedMarks: sortedMarks,     // All marks sorted high to low
                 topMarks: sortedMarks.length >= 2 ? [sortedMarks[0], sortedMarks[1]] : sortedMarks,
                 calculationExplanation: sortedMarks.length >= 2 
@@ -371,6 +392,9 @@ export const getAssignments = async (req, res) => {
             return res.status(500).json({ message: 'Server error', error: err.message });
         }
     };
+
+
+    
 
 
 
