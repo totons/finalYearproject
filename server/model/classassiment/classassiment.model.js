@@ -58,35 +58,70 @@ const assignmentSchema = new mongoose.Schema({
         required: true,
     },
     submissions: [
-        {
-            student: {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: 'User',
-                required: true,
-            },
-            fileUrl: {
-                type: String, 
-                required: true,
-            },
-            submittedAt: {
-                type: Date,
-                default: Date.now,
-            },
-            mark:{
+  {
+    student: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    fileUrl: {
+      type: String,
+      required: true,
+    },
+    submittedAt: {
+      type: Date,
+      default: Date.now,
+    },
+    isLateSubmission: {
+      type: Boolean,
+      default: false,
+    },
+    lateSubmissionReason: {
+      type: String,
+      default: "",
+      trim: true,
+      maxlength: 500,
+    },
+    mark: {
+      type: Number,
+      default: 0,
+    },
+    review: {
+      type: String,
+      default: "",
+    },
+  },
+],
+    // submissions: [
+    //     {
+    //         student: {
+    //             type: mongoose.Schema.Types.ObjectId,
+    //             ref: 'User',
+    //             required: true,
+    //         },
+    //         fileUrl: {
+    //             type: String, 
+    //             required: true,
+    //         },
+    //         submittedAt: {
+    //             type: Date,
+    //             default: Date.now,
+    //         },
+    //         mark:{
 
-                type: Number,
-                default: 0,
+    //             type: Number,
+    //             default: 0,
                 
                 
-            },
-            review: {
-               type: String, 
+    //         },
+    //         review: {
+    //            type: String, 
                 
-            },
+    //         },
            
            
-        },
-    ],
+    //     },
+    // ],
 });
 
 export const Assignment = mongoose.model('Assignment', assignmentSchema);

@@ -10,14 +10,266 @@ import { Assignment, Class } from "../../model/classassiment/classassiment.model
 
 
 
+// export const generateStudentPDF = async (req, res) => {
+//     try {
+//         const { courseId } = req.params;
+
+//         // Fetch course details and enrolled students
+//         const course = await Course.findById(courseId)
+//             .populate('enrolledStudents') // Populating enrolled students
+//             .populate('instructor'); // Populating instructor
+
+//         if (!course) {
+//             return res.status(404).json({ error: 'Course not found' });
+//         }
+
+//         if (!course.enrolledStudents || course.enrolledStudents.length === 0) {
+//             return res.status(400).json({ error: 'No enrolled students found' });
+//         }
+
+//         // Fetch assignments and their submissions
+//         const assignments = await Assignment.find({ class: { $in: course.classes } }).populate('submissions.student');
+
+//         res.setHeader('Content-Disposition', 'attachment; filename="Enrolled_Students.pdf"');
+//         res.setHeader('Content-Type', 'application/pdf');
+
+//         const doc = new PDFDocument({ margin: 20 });
+//         doc.pipe(res);
+
+//         doc.font('Helvetica-Bold').fontSize(24).fillColor('#000')
+//             .text(`Online Learning Academy`, { align: 'center' });
+        
+//         // **Title Section**
+//         doc.font('Helvetica-Bold').fontSize(16).fillColor('#0056b3')
+//             .text(`Course Name - ${course.title}`, { align: 'center' });
+//         doc.font('Helvetica-Bold').fontSize(16).fillColor('#0056b3')
+//             .text(`Instructor Name - ${course.instructor.fullname}`, { align: 'center' });
+       
+//         doc.fillColor('black');
+
+//         // **Define Table Columns**
+//         const startX = 10;
+//         const startY = 150;
+//         const rowHeight = 30;
+
+//         // Dynamic width calculation with additional columns for attendance and written marks
+//         const availableWidth = 250; // Reduced available width for assignments to accommodate new columns
+        
+//         // Column widths array with additional columns for attendance and written marks
+//         const colWidths = [
+//             40, // S.No
+//             60, // Full Name
+//             ...Array(assignments.length).fill(availableWidth / assignments.length), // Assignments
+//             60, // Attendance Mark
+//             60, // Written Mark
+//             60, // Assignment Mark
+//             60  // Total Mark
+//         ];
+
+//         let x = startX;
+//         let y = startY;
+
+//         // **Table Header with Background**
+//         doc.rect(startX, startY, colWidths.reduce((sum, w) => sum + w, 0), rowHeight).fill('#0056b3');
+//         doc.fillColor('white').fontSize(12).font('Helvetica-Bold');
+        
+//         doc.text('S.No', x, y + 4, { width: colWidths[0], align: 'center' });
+//         x += colWidths[0];
+//         doc.text('Full Name', x, y + 4, { width: colWidths[1], align: 'center' });
+//         x += colWidths[1];
+
+//         // Add Assignment Headers
+//         assignments.forEach((_, i) => {
+//             doc.text(`Ass ${i + 1}`, x, y + 8, { width: colWidths[i + 2], align: 'center' });
+//             x += colWidths[i + 2];
+//         });
+
+//         // Add Attendance, Written, Assignment Mark and Total headers
+//         doc.text('Attend.', x, y + 6, { width: colWidths[colWidths.length - 4], align: 'center' });
+//         x += colWidths[colWidths.length - 4];
+//         doc.text('Written', x, y + 6, { width: colWidths[colWidths.length - 3], align: 'center' });
+//         x += colWidths[colWidths.length - 3];
+//         doc.text('Assgn.', x, y + 6, { width: colWidths[colWidths.length - 2], align: 'center' });
+//         x += colWidths[colWidths.length - 2];
+//         doc.text('Total', x, y + 6, { width: colWidths[colWidths.length - 1], align: 'center' });
+
+//         doc.fillColor('black').stroke();
+//         y += rowHeight;
+
+//         // **Student Data Rows with Alternating Colors**
+//         course.enrolledStudents.forEach((student, index) => {
+//             const isEvenRow = index % 2 === 0;
+//             if (isEvenRow) {
+//                 doc.rect(startX, y, colWidths.reduce((sum, w) => sum + w, 0), rowHeight).fill('#f2f2f2');
+//                 doc.fillColor('black');
+//             }
+
+//             // Find student marks in course.studentMarks
+//             const studentMark = course.studentMarks?.find(mark => 
+//                 mark.student.toString() === student._id.toString()
+//             ) || { attendanceMark: 0, writtenMark: 0 };
+            
+//             const attendanceMark = studentMark.attendanceMark || 0;
+//             const writtenMark = studentMark.writtenMark || 0;
+            
+//             // Collect all marks from assignments
+//             let allAssignmentMarks = [];
+            
+//             assignments.forEach(assignment => {
+//                 const submission = assignment.submissions.find(sub => 
+//                     sub.student._id.toString() === student._id.toString()
+//                 );
+//                 if (submission && submission.mark !== null && submission.mark !== undefined) {
+//                     allAssignmentMarks.push(submission.mark);
+//                 }
+//             });
+            
+//             // Sort marks from highest to lowest
+//             allAssignmentMarks.sort((a, b) => b - a);
+            
+//             // Calculate assignment mark using top two marks or just one if that's all we have
+//             let assignmentMark = 0;
+//             if (allAssignmentMarks.length >= 2) {
+//                 assignmentMark = (allAssignmentMarks[0] + allAssignmentMarks[1]) / 2;
+//             } else if (allAssignmentMarks.length === 1) {
+//                 assignmentMark = allAssignmentMarks[0];
+//             }
+            
+//             // Calculate total mark (attendance + written + assignment)
+//             const totalMark = attendanceMark + writtenMark + assignmentMark;
+
+//             x = startX;
+//             doc.text(index + 1, x, y + 8, { width: colWidths[0], align: 'center' });
+//             x += colWidths[0];
+
+//             doc.text(student.fullname || 'N/A', x, y + 8, { width: colWidths[1], align: 'center' });
+//             x += colWidths[1];
+
+//             // Assignment marks
+//             assignments.forEach((assignment, i) => {
+//                 const submission = assignment.submissions.find(sub => 
+//                     sub.student._id.toString() === student._id.toString()
+//                 );
+//                 const mark = submission ? submission.mark : null;
+//                 let markText = '-';
+
+//                 if (mark !== null && mark !== undefined) {
+//                     markText = `${mark}`;
+//                 }
+
+//                 // **Text color change based on Pass/Fail**
+//                 const isPassed = mark >= 40;
+//                 doc.fillColor(isPassed ? 'green' : 'red').text(markText, x, y + 8, { width: colWidths[i + 2], align: 'center' });
+
+//                 x += colWidths[i + 2];
+//             });
+
+//             // Add attendance mark
+//             doc.fillColor('black').text(attendanceMark.toString(), x, y + 8, { width: colWidths[colWidths.length - 4], align: 'center' });
+//             x += colWidths[colWidths.length - 4];
+            
+//             // Add written mark
+//             doc.text(writtenMark.toString(), x, y + 8, { width: colWidths[colWidths.length - 3], align: 'center' });
+//             x += colWidths[colWidths.length - 3];
+            
+//             // Add assignment mark
+//             doc.text(assignmentMark.toFixed(1), x, y + 8, { width: colWidths[colWidths.length - 2], align: 'center' });
+//             x += colWidths[colWidths.length - 2];
+            
+//             // Add total mark with color coding
+//             const isPassed = totalMark >= 40;
+//             doc.fillColor(isPassed ? 'green' : 'red').text(
+//                 totalMark.toFixed(1) + (isPassed ? ' (P)' : ' (F)'), 
+//                 x, y + 8, 
+//                 { width: colWidths[colWidths.length - 1], align: 'center' }
+//             );
+
+//             doc.stroke();
+//             y += rowHeight;
+            
+//             // Check if we need to start a new page
+//             if (y > doc.page.height - 50) {
+//                 doc.addPage();
+//                 y = 50; // Reset Y position for the new page
+//             }
+//         });
+
+//         // Add a summary section at the end
+//         y += 10;
+//         // doc.fillColor('black').font('Helvetica-Bold').fontSize(14)
+//         //     .text('Course Summary', startX, y);
+        
+//         // y += 20;
+//         // doc.font('Helvetica').fontSize(12);
+        
+//         // Calculate pass/fail statistics
+//         let passedCount = 0;
+//         let failedCount = 0;
+        
+//         course.enrolledStudents.forEach(student => {
+//             const studentMark = course.studentMarks?.find(mark => 
+//                 mark.student.toString() === student._id.toString()
+//             ) || { attendanceMark: 0, writtenMark: 0 };
+            
+//             const attendanceMark = studentMark.attendanceMark || 0;
+//             const writtenMark = studentMark.writtenMark || 0;
+            
+//             // Collect all marks from assignments
+//             let allAssignmentMarks = [];
+            
+//             assignments.forEach(assignment => {
+//                 const submission = assignment.submissions.find(sub => 
+//                     sub.student._id.toString() === student._id.toString()
+//                 );
+//                 if (submission && submission.mark !== null && submission.mark !== undefined) {
+//                     allAssignmentMarks.push(submission.mark);
+//                 }
+//             });
+            
+//             // Sort marks from highest to lowest
+//             allAssignmentMarks.sort((a, b) => b - a);
+            
+//             // Calculate assignment mark using top two marks or just one if that's all we have
+//             let assignmentMark = 0;
+//             if (allAssignmentMarks.length >= 2) {
+//                 assignmentMark = (allAssignmentMarks[0] + allAssignmentMarks[1]) / 2;
+//             } else if (allAssignmentMarks.length === 1) {
+//                 assignmentMark = allAssignmentMarks[0];
+//             }
+            
+//             // Calculate total mark
+//             const totalMark = attendanceMark + writtenMark + assignmentMark;
+            
+//             if (totalMark >= 40) passedCount++;
+//             else failedCount++;
+//         });
+        
+//         // doc.text(`Total Students: ${course.enrolledStudents.length}`, startX, y);
+//         // y += 20;
+//         // doc.text(`Passed: ${passedCount} (${((passedCount / course.enrolledStudents.length) * 100).toFixed(1)}%)`, startX, y);
+//         // y += 20;
+//         // doc.text(`Failed: ${failedCount} (${((failedCount / course.enrolledStudents.length) * 100).toFixed(1)}%)`, startX, y);
+        
+//         doc.end();
+//     } catch (error) {
+//         console.error('PDF Generation Error:', error);
+//         res.status(500).json({ error: 'Internal Server Error' });
+//     }
+// };
+
+
+
+
+
+
+
 export const generateStudentPDF = async (req, res) => {
     try {
         const { courseId } = req.params;
 
-        // Fetch course details and enrolled students
         const course = await Course.findById(courseId)
-            .populate('enrolledStudents') // Populating enrolled students
-            .populate('instructor'); // Populating instructor
+            .populate('enrolledStudents')
+            .populate('instructor');
 
         if (!course) {
             return res.status(404).json({ error: 'Course not found' });
@@ -27,7 +279,6 @@ export const generateStudentPDF = async (req, res) => {
             return res.status(400).json({ error: 'No enrolled students found' });
         }
 
-        // Fetch assignments and their submissions
         const assignments = await Assignment.find({ class: { $in: course.classes } }).populate('submissions.student');
 
         res.setHeader('Content-Disposition', 'attachment; filename="Enrolled_Students.pdf"');
@@ -37,66 +288,81 @@ export const generateStudentPDF = async (req, res) => {
         doc.pipe(res);
 
         doc.font('Helvetica-Bold').fontSize(24).fillColor('#000')
-            .text(`Online Learning Academy`, { align: 'center' });
-        
-        // **Title Section**
+            .text(`Online Learning & Assignment Submission System`, { align: 'center' });
+
         doc.font('Helvetica-Bold').fontSize(16).fillColor('#0056b3')
             .text(`Course Name - ${course.title}`, { align: 'center' });
         doc.font('Helvetica-Bold').fontSize(16).fillColor('#0056b3')
             .text(`Instructor Name - ${course.instructor.fullname}`, { align: 'center' });
-       
+
         doc.fillColor('black');
 
-        // **Define Table Columns**
+        const getGrade = (mark) => {
+            const num = Number(mark || 0);
+
+            if (num >= 80) return 'A+';
+            if (num >= 75) return 'A';
+            if (num >= 70) return 'A-';
+            if (num >= 65) return 'B+';
+            if (num >= 60) return 'B';
+            if (num >= 55) return 'B-';
+            if (num >= 50) return 'C+';
+            if (num >= 45) return 'C';
+            if (num >= 40) return 'D';
+            return 'F';
+        };
+
         const startX = 10;
         const startY = 150;
         const rowHeight = 30;
 
-        // Dynamic width calculation with additional columns for attendance and written marks
-        const availableWidth = 250; // Reduced available width for assignments to accommodate new columns
-        
-        // Column widths array with additional columns for attendance and written marks
+        const availableWidth = 210;
+
         const colWidths = [
             40, // S.No
-            60, // Full Name
+            70, // Full Name
             ...Array(assignments.length).fill(availableWidth / assignments.length), // Assignments
-            60, // Attendance Mark
-            60, // Written Mark
-            60, // Assignment Mark
-            60  // Total Mark
+            55, // Attendance Mark
+            55, // Written Mark
+            55, // Assignment Mark
+            55, // Total Mark
+            45  // Grade
         ];
 
         let x = startX;
         let y = startY;
 
-        // **Table Header with Background**
         doc.rect(startX, startY, colWidths.reduce((sum, w) => sum + w, 0), rowHeight).fill('#0056b3');
         doc.fillColor('white').fontSize(12).font('Helvetica-Bold');
-        
+
         doc.text('S.No', x, y + 4, { width: colWidths[0], align: 'center' });
         x += colWidths[0];
+
         doc.text('Full Name', x, y + 4, { width: colWidths[1], align: 'center' });
         x += colWidths[1];
 
-        // Add Assignment Headers
         assignments.forEach((_, i) => {
             doc.text(`Ass ${i + 1}`, x, y + 8, { width: colWidths[i + 2], align: 'center' });
             x += colWidths[i + 2];
         });
 
-        // Add Attendance, Written, Assignment Mark and Total headers
-        doc.text('Attend.', x, y + 6, { width: colWidths[colWidths.length - 4], align: 'center' });
+        doc.text('Attend.', x, y + 6, { width: colWidths[colWidths.length - 5], align: 'center' });
+        x += colWidths[colWidths.length - 5];
+
+        doc.text('Written', x, y + 6, { width: colWidths[colWidths.length - 4], align: 'center' });
         x += colWidths[colWidths.length - 4];
-        doc.text('Written', x, y + 6, { width: colWidths[colWidths.length - 3], align: 'center' });
+
+        doc.text('Assgn.', x, y + 6, { width: colWidths[colWidths.length - 3], align: 'center' });
         x += colWidths[colWidths.length - 3];
-        doc.text('Assgn.', x, y + 6, { width: colWidths[colWidths.length - 2], align: 'center' });
+
+        doc.text('Total', x, y + 6, { width: colWidths[colWidths.length - 2], align: 'center' });
         x += colWidths[colWidths.length - 2];
-        doc.text('Total', x, y + 6, { width: colWidths[colWidths.length - 1], align: 'center' });
+
+        doc.text('Grade', x, y + 6, { width: colWidths[colWidths.length - 1], align: 'center' });
 
         doc.fillColor('black').stroke();
         y += rowHeight;
 
-        // **Student Data Rows with Alternating Colors**
         course.enrolledStudents.forEach((student, index) => {
             const isEvenRow = index % 2 === 0;
             if (isEvenRow) {
@@ -104,50 +370,45 @@ export const generateStudentPDF = async (req, res) => {
                 doc.fillColor('black');
             }
 
-            // Find student marks in course.studentMarks
-            const studentMark = course.studentMarks?.find(mark => 
+            const studentMark = course.studentMarks?.find(mark =>
                 mark.student.toString() === student._id.toString()
             ) || { attendanceMark: 0, writtenMark: 0 };
-            
+
             const attendanceMark = studentMark.attendanceMark || 0;
             const writtenMark = studentMark.writtenMark || 0;
-            
-            // Collect all marks from assignments
+
             let allAssignmentMarks = [];
-            
+
             assignments.forEach(assignment => {
-                const submission = assignment.submissions.find(sub => 
+                const submission = assignment.submissions.find(sub =>
                     sub.student._id.toString() === student._id.toString()
                 );
                 if (submission && submission.mark !== null && submission.mark !== undefined) {
                     allAssignmentMarks.push(submission.mark);
                 }
             });
-            
-            // Sort marks from highest to lowest
+
             allAssignmentMarks.sort((a, b) => b - a);
-            
-            // Calculate assignment mark using top two marks or just one if that's all we have
+
             let assignmentMark = 0;
             if (allAssignmentMarks.length >= 2) {
                 assignmentMark = (allAssignmentMarks[0] + allAssignmentMarks[1]) / 2;
             } else if (allAssignmentMarks.length === 1) {
                 assignmentMark = allAssignmentMarks[0];
             }
-            
-            // Calculate total mark (attendance + written + assignment)
+
             const totalMark = attendanceMark + writtenMark + assignmentMark;
+            const grade = getGrade(totalMark);
 
             x = startX;
-            doc.text(index + 1, x, y + 8, { width: colWidths[0], align: 'center' });
+            doc.fillColor('black').text(index + 1, x, y + 8, { width: colWidths[0], align: 'center' });
             x += colWidths[0];
 
             doc.text(student.fullname || 'N/A', x, y + 8, { width: colWidths[1], align: 'center' });
             x += colWidths[1];
 
-            // Assignment marks
             assignments.forEach((assignment, i) => {
-                const submission = assignment.submissions.find(sub => 
+                const submission = assignment.submissions.find(sub =>
                     sub.student._id.toString() === student._id.toString()
                 );
                 const mark = submission ? submission.mark : null;
@@ -157,99 +418,52 @@ export const generateStudentPDF = async (req, res) => {
                     markText = `${mark}`;
                 }
 
-                // **Text color change based on Pass/Fail**
-                const isPassed = mark >= 40;
-                doc.fillColor(isPassed ? 'green' : 'red').text(markText, x, y + 8, { width: colWidths[i + 2], align: 'center' });
+                doc.fillColor('black').text(markText, x, y + 8, {
+                    width: colWidths[i + 2],
+                    align: 'center'
+                });
 
                 x += colWidths[i + 2];
             });
 
-            // Add attendance mark
-            doc.fillColor('black').text(attendanceMark.toString(), x, y + 8, { width: colWidths[colWidths.length - 4], align: 'center' });
+            doc.fillColor('black').text(attendanceMark.toString(), x, y + 8, {
+                width: colWidths[colWidths.length - 5],
+                align: 'center'
+            });
+            x += colWidths[colWidths.length - 5];
+
+            doc.text(writtenMark.toString(), x, y + 8, {
+                width: colWidths[colWidths.length - 4],
+                align: 'center'
+            });
             x += colWidths[colWidths.length - 4];
-            
-            // Add written mark
-            doc.text(writtenMark.toString(), x, y + 8, { width: colWidths[colWidths.length - 3], align: 'center' });
+
+            doc.text(assignmentMark.toFixed(1), x, y + 8, {
+                width: colWidths[colWidths.length - 3],
+                align: 'center'
+            });
             x += colWidths[colWidths.length - 3];
-            
-            // Add assignment mark
-            doc.text(assignmentMark.toFixed(1), x, y + 8, { width: colWidths[colWidths.length - 2], align: 'center' });
+
+            doc.text(totalMark.toFixed(1), x, y + 8, {
+                width: colWidths[colWidths.length - 2],
+                align: 'center'
+            });
             x += colWidths[colWidths.length - 2];
-            
-            // Add total mark with color coding
-            const isPassed = totalMark >= 40;
-            doc.fillColor(isPassed ? 'green' : 'red').text(
-                totalMark.toFixed(1) + (isPassed ? ' (P)' : ' (F)'), 
-                x, y + 8, 
-                { width: colWidths[colWidths.length - 1], align: 'center' }
-            );
+
+            doc.text(grade, x, y + 8, {
+                width: colWidths[colWidths.length - 1],
+                align: 'center'
+            });
 
             doc.stroke();
             y += rowHeight;
-            
-            // Check if we need to start a new page
+
             if (y > doc.page.height - 50) {
                 doc.addPage();
-                y = 50; // Reset Y position for the new page
+                y = 50;
             }
         });
 
-        // Add a summary section at the end
-        y += 10;
-        // doc.fillColor('black').font('Helvetica-Bold').fontSize(14)
-        //     .text('Course Summary', startX, y);
-        
-        // y += 20;
-        // doc.font('Helvetica').fontSize(12);
-        
-        // Calculate pass/fail statistics
-        let passedCount = 0;
-        let failedCount = 0;
-        
-        course.enrolledStudents.forEach(student => {
-            const studentMark = course.studentMarks?.find(mark => 
-                mark.student.toString() === student._id.toString()
-            ) || { attendanceMark: 0, writtenMark: 0 };
-            
-            const attendanceMark = studentMark.attendanceMark || 0;
-            const writtenMark = studentMark.writtenMark || 0;
-            
-            // Collect all marks from assignments
-            let allAssignmentMarks = [];
-            
-            assignments.forEach(assignment => {
-                const submission = assignment.submissions.find(sub => 
-                    sub.student._id.toString() === student._id.toString()
-                );
-                if (submission && submission.mark !== null && submission.mark !== undefined) {
-                    allAssignmentMarks.push(submission.mark);
-                }
-            });
-            
-            // Sort marks from highest to lowest
-            allAssignmentMarks.sort((a, b) => b - a);
-            
-            // Calculate assignment mark using top two marks or just one if that's all we have
-            let assignmentMark = 0;
-            if (allAssignmentMarks.length >= 2) {
-                assignmentMark = (allAssignmentMarks[0] + allAssignmentMarks[1]) / 2;
-            } else if (allAssignmentMarks.length === 1) {
-                assignmentMark = allAssignmentMarks[0];
-            }
-            
-            // Calculate total mark
-            const totalMark = attendanceMark + writtenMark + assignmentMark;
-            
-            if (totalMark >= 40) passedCount++;
-            else failedCount++;
-        });
-        
-        // doc.text(`Total Students: ${course.enrolledStudents.length}`, startX, y);
-        // y += 20;
-        // doc.text(`Passed: ${passedCount} (${((passedCount / course.enrolledStudents.length) * 100).toFixed(1)}%)`, startX, y);
-        // y += 20;
-        // doc.text(`Failed: ${failedCount} (${((failedCount / course.enrolledStudents.length) * 100).toFixed(1)}%)`, startX, y);
-        
         doc.end();
     } catch (error) {
         console.error('PDF Generation Error:', error);
@@ -257,7 +471,14 @@ export const generateStudentPDF = async (req, res) => {
     }
 };
 
+
+
+
 // Add a new course (by instructor)
+
+
+
+
 export const addCourse = async (req, res) => {
     try {
         // Log the incoming request

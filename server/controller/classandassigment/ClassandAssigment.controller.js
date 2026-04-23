@@ -142,50 +142,108 @@ export const addAssignment = async (req, res) => {
 
 
 
+// export const submitAssignment = async (req, res) => {
+//     try {
+//         const { courseId, assignmentId } = req.params;
+//         const { studentId } = req.body;  // Ensure that studentId is passed in the body
+
+//         // Ensure file is uploaded
+//         if (!req.file) {
+//             return res.status(400).json({ message: "File not uploaded" });
+//         }
+
+//         const fileUrl = req.file.path;
+
+//         // Find the course and assignment
+//         const course = await Course.findById(courseId);
+//         if (!course) {
+//             return res.status(404).json({ message: "Course not found" });
+//         }
+
+//         const assignment = await Assignment.findById(assignmentId);
+//         if (!assignment) {
+//             return res.status(404).json({ message: "Assignment not found" });
+//         }
+
+//         // Check if the student has already submitted the assignment
+//         const existingSubmission = assignment.submissions.find(
+//             (submission) => submission.student.toString() === studentId
+//         );
+
+//         if (existingSubmission) {
+//             return res.status(400).json({ message: "You have already submitted this assignment." });
+//         }
+
+//         // Add submission to the assignment
+//         assignment.submissions.push({ student: studentId, fileUrl });
+//         await assignment.save(); // Save on the Assignment model directly
+
+//         res.status(201).json({ message: "Assignment submitted successfully", submissions: assignment.submissions });
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).json({ message: "Failed to submit assignment", error: error.message });
+//     }
+// };
+
+
+
+
 export const submitAssignment = async (req, res) => {
-    try {
-        const { courseId, assignmentId } = req.params;
-        const { studentId } = req.body;  // Ensure that studentId is passed in the body
+  try {
+    const { assignmentId } = req.params;
+    const studentId = req.user.id;
+    const lateSubmissionReason = req.body.lateSubmissionReason?.trim() || "";
 
-        // Ensure file is uploaded
-        if (!req.file) {
-            return res.status(400).json({ message: "File not uploaded" });
-        }
-
-        const fileUrl = req.file.path;
-
-        // Find the course and assignment
-        const course = await Course.findById(courseId);
-        if (!course) {
-            return res.status(404).json({ message: "Course not found" });
-        }
-
-        const assignment = await Assignment.findById(assignmentId);
-        if (!assignment) {
-            return res.status(404).json({ message: "Assignment not found" });
-        }
-
-        // Check if the student has already submitted the assignment
-        const existingSubmission = assignment.submissions.find(
-            (submission) => submission.student.toString() === studentId
-        );
-
-        if (existingSubmission) {
-            return res.status(400).json({ message: "You have already submitted this assignment." });
-        }
-
-        // Add submission to the assignment
-        assignment.submissions.push({ student: studentId, fileUrl });
-        await assignment.save(); // Save on the Assignment model directly
-
-        res.status(201).json({ message: "Assignment submitted successfully", submissions: assignment.submissions });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Failed to submit assignment", error: error.message });
+    if (!req.file) {
+      return res.status(400).json({ message: "Assignment file is required." });
     }
+
+    const assignment = await Assignment.findById(assignmentId);
+    if (!assignment) {
+      return res.status(404).json({ message: "Assignment not found." });
+    }
+
+    const alreadySubmitted = assignment.submissions.find(
+      (submission) => submission.student.toString() === studentId.toString()
+    );
+
+    if (alreadySubmitted) {
+      return res.status(400).json({ message: "You have already submitted this assignment." });
+    }
+
+    const deadlinePassed = new Date() > new Date(assignment.submissionDeadline);
+
+    if (deadlinePassed && !lateSubmissionReason) {
+      return res.status(400).json({
+        message: "Late submission reason is required after the deadline.",
+      });
+    }
+
+    assignment.submissions.push({
+      student: studentId,
+      fileUrl: req.file.path,
+      submittedAt: new Date(),
+      isLateSubmission: deadlinePassed,
+      lateSubmissionReason: deadlinePassed ? lateSubmissionReason : "",
+      mark: 0,
+      review: "",
+    });
+
+    await assignment.save();
+
+    return res.status(201).json({
+      message: deadlinePassed
+        ? "Late assignment submitted successfully."
+        : "Assignment submitted successfully.",
+    });
+  } catch (error) {
+    console.error("Error submitting assignment:", error);
+    return res.status(500).json({
+      message: "Failed to submit assignment.",
+      error: error.message,
+    });
+  }
 };
-
-
 
 
 
