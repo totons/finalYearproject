@@ -10,7 +10,7 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: "http://127.0.0.1:5000",
+        url: "https://final-yearproject-8pi5.vercel.app",
         description: "Local server",
       },
     ],
