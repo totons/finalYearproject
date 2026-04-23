@@ -3,6 +3,8 @@ import axios from "axios";
 import { Link, useParams } from "react-router-dom";
 import Cookies from "js-cookie";
 import { AuthContext } from "../../../provider/AuthProvider";
+import { BookOpen, Calendar, Link as LinkIcon, FileText, AlertCircle, CheckCircle, Loader } from "lucide-react";
+import { getBaseUrl } from "../../../utils/baseUrl";
 
 const Showclass = () => {
   const { courseId } = useParams();
@@ -17,7 +19,7 @@ const Showclass = () => {
   useEffect(() => {
     const fetchClasses = async () => {
       try {
-        const response = await axios.get(`http://127.0.0.1:5004/api/${courseId}/classes`);
+        const response = await axios.get(`${getBaseUrl()}/api/${courseId}/classes`);
         setClasses(response.data.classes);
       } catch (err) {
         setError("Failed to fetch classes.");
@@ -37,7 +39,7 @@ const Showclass = () => {
       }));
 
       try {
-        const url = `http://127.0.0.1:5004/api/courses/${courseId}/assignments/${assignmentId}/submit`;
+        const url = `${getBaseUrl()}/api/courses/${courseId}/assignments/${assignmentId}/submit`;
 
         await axios.post(url, formData, {
           headers: {
@@ -74,173 +76,244 @@ const Showclass = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
-      </div>
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+                      <div className="text-center">
+                          <Loader className="w-12 h-12 text-indigo-600 animate-spin mx-auto mb-4" />
+                          <p className="text-lg font-semibold text-gray-700">Loading your courses...</p>
+                      </div>
+                  </div>
     );
   }
 
   if (error) {
     return (
-      <div className="p-6 mx-4 text-center text-red-600 bg-red-50 rounded-lg border border-red-200">
-        {error}
-        <button
-          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-          onClick={() => window.location.reload()}
-        >
-          Retry
-        </button>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 flex items-center justify-center p-4">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-8 max-w-md text-center shadow-lg">
+          <AlertCircle className="w-12 h-12 text-red-600 mx-auto mb-4" />
+          <p className="text-red-800 font-semibold text-lg mb-4">{error}</p>
+          <button
+            className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-semibold hover:from-blue-600 hover:to-blue-700 shadow-md hover:shadow-lg transition-all"
+            onClick={() => window.location.reload()}
+          >
+            Retry
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto bg-gray-50 min-h-screen">
-      <h1 className="text-3xl font-bold mb-8 text-gray-800 border-b pb-4 px-4 flex">
-        <h1>Class</h1>
-        {/* <Link
-          className="ml-auto px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-          to={`/dashboard/courses/${courseId}/users/${studentId}`}
-        >
-          Result
-        </Link> */}
-      </h1>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 p-4 md:p-10">
+      {/* Header */}
+      {/* <div className="mb-12 max-w-7xl mx-auto">
+        <div className="flex justify-between gap-3 mb-2">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-lg">
+            <BookOpen className="w-8 h-8 text-white" />
+          </div>
+          <h1 className="text-4xl md:text-5xl font-bold text-slate-900">Class Sessions</h1>
+        
+          </div>
 
+          
+        </div>
+        <p className="text-slate-600 text-lg ml-14">{classes.length} {classes.length === 1 ? 'session' : 'sessions'} available</p>
+      </div> */}
+
+
+<div className="text-center mb-8 mt-5">
+                    <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 mb-2">
+                        Class Sessions
+                    </h2>
+                    <p className="text-gray-600 text-sm sm:text-base">Review and publish courses awaiting approval</p>
+                    <div className="mt-4 inline-block bg-yellow-100 text-yellow-800 px-4 py-2 rounded-full text-sm font-medium">
+                        {classes.length} {classes.length === 1 ? 'session' : 'sessions'} available
+                    </div>
+                </div>
+
+<div className="w-full py-2 lg:py-10">
+  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    
+    <Link
+      to={`/dashboard/addclass/${courseId}`}
+      className="bg-blue-500 text-white px-5 py-3 rounded-xl hover:bg-blue-600 transition text-center w-full"
+    >
+      Add Class
+    </Link>
+
+    <Link
+      to={`/dashboard/addassigment/${courseId}`}
+      className="bg-green-500 text-white px-5 py-3 rounded-xl hover:bg-green-600 transition text-center w-full"
+    >
+      Add Assignment
+    </Link>
+
+  </div>
+</div>
+
+
+      {/* Classes Grid */}
       {classes.length > 0 ? (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 px-4">
-          {classes.map((classItem, index) => (
-            <div
-              key={classItem._id}
-              className="bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 p-6 border border-gray-100"
-            >
-              <div>
-                <h2 className="text-xl font-semibold text-gray-800 mb-4">
-                  Class {index + 1}: {classItem.title}
-                </h2>
-                <p className="text-gray-600 mb-4">{classItem.description}</p>
-                <p>
-                  <span className="font-medium text-gray-700">Resources: </span>
-                  <a
-                    href={classItem.resourcesLink}
-                    className="text-blue-600 hover:text-blue-800 hover:underline"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {classItem.resourcesLink}
-                  </a>
-                </p>
-                <p>
-                  <span className="font-medium text-gray-700">
-                    Class Link:{" "}
-                  </span>
-                  <a
-                    href={classItem.classLink}
-                    className="text-blue-600 hover:text-blue-800 hover:underline"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {classItem.classLink}
-                  </a>
-                </p>
-                <p>
-                  <span className="font-medium text-gray-700">Date: </span>
-                  {new Date(classItem.date).toLocaleString()}
-                </p>
-              </div>
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {classes.map((classItem, index) => (
+              <div
+                key={classItem._id}
+                className="group bg-white rounded-2xl shadow hover:shadow-lg transition-all duration-300 overflow-hidden border border-slate-200"
+              >
+                {/* Card Header */}
+                <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-6 text-white">
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <span className="inline-block px-3 py-1 bg-blue-700 rounded-full text-sm font-semibold mb-2">
+                        Session {index + 1}
+                      </span>
+                      <h2 className="text-2xl font-bold">{classItem.title}</h2>
+                    </div>
+                  </div>
+                </div>
 
-              <div className="mt-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                  Assignments
-                </h3>
-                {classItem.assignments.length > 0 ? (
-                  <ul className="space-y-4">
-                    {classItem.assignments.map((assignment) => {
-                      const deadlinePassed = new Date() > new Date(assignment.submissionDeadline);
-                      const alreadySubmitted = handleSubmissionCheck(assignment._id);
+                {/* Card Content */}
+                <div className="p-6 space-y-4">
+                  {/* Description */}
+                  <div>
+                    <p className="text-slate-700 leading-relaxed">{classItem.description}</p>
+                  </div>
 
-                      return (
-                        <li key={assignment._id} className="p-4 bg-gray-50 rounded-lg border border-gray-100">
-                          <h4 className="font-semibold text-gray-800">{assignment.title}</h4>
-                          <p className="text-gray-600">{assignment.description}</p>
-                          <p>
-                            <span className="font-medium text-gray-700">File: </span>
-                            <a
-                              href={`http://localhost:5004/dashboard/showallclass/${assignment.fileUrl}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-blue-600 hover:text-blue-800 hover:underline"
+                  {/* Meta Information */}
+                  <div className="space-y-3 border-t border-b border-slate-200 py-4">
+                    {/* Date */}
+                    <div className="flex items-start gap-3">
+                      <Calendar className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-sm text-slate-600">Date & Time</p>
+                        <p className="font-semibold text-slate-900">
+                          {new Date(classItem.date).toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Resources Link */}
+                    <div className="flex items-start gap-3">
+                      <LinkIcon className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-slate-600">Resources</p>
+                        <a
+                          href={classItem.resourcesLink}
+                          className="text-blue-600 hover:text-blue-800 hover:underline font-medium truncate block"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          View Resources
+                        </a>
+                      </div>
+                    </div>
+
+                    {/* Class Link */}
+                    <div className="flex items-start gap-3">
+                      <LinkIcon className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-slate-600">Class Link</p>
+                        <a
+                          href={classItem.classLink}
+                          className="text-blue-600 hover:text-blue-800 hover:underline font-medium truncate block"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Join Class
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Assignments Section */}
+                  <div>
+                    <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                      <FileText className="w-5 h-5 text-blue-600" />
+                      Assignments ({classItem.assignments.length})
+                    </h3>
+
+                    {classItem.assignments.length > 0 ? (
+                      <ul className="space-y-3">
+                        {classItem.assignments.map((assignment) => {
+                          const deadlinePassed = new Date() > new Date(assignment.submissionDeadline);
+                          const alreadySubmitted = handleSubmissionCheck(assignment._id);
+
+                          return (
+                            <li
+                              key={assignment._id}
+                              className="p-4 bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg border border-slate-200 hover:border-blue-300 transition-all"
                             >
-                              {assignment.fileUrl.includes(".pdf") ? "Open PDF" : "Download File"}
-                            </a>
-                          </p>
+                              <div className="flex items-start justify-between mb-2">
+                                <h4 className="font-semibold text-slate-900">{assignment.title}</h4>
+                                {alreadySubmitted && (
+                                  <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
+                                )}
+                              </div>
 
-                          <p>
-                            <span className="font-medium text-gray-700">Deadline: </span>
-                            {new Date(assignment.submissionDeadline).toLocaleString()}
-                          </p>
+                              <p className="text-slate-600 text-sm mb-3">{assignment.description}</p>
 
-                          {/* Submission Form */}
-                          {/* {!deadlinePassed && !alreadySubmitted ? (
-                            <form
-                              onSubmit={(e) => {
-                                e.preventDefault();
+                              {/* Deadline */}
+                              <div className="flex items-center gap-2 mb-3 text-sm">
+                                <Calendar className="w-4 h-4 text-slate-500" />
+                                <span className={deadlinePassed ? "text-red-600 font-semibold" : "text-slate-600"}>
+                                  Deadline: {new Date(assignment.submissionDeadline).toLocaleString()}
+                                </span>
+                              </div>
 
-                                const fileInput = e.target.elements.file;
+                              {/* File Link */}
+                              {assignment.fileUrl && (
+                                <div className="mb-3">
+                                  <a
+                                    href={`http://localhost:5004/dashboard/showallclass/${assignment.fileUrl}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium text-sm hover:underline"
+                                  >
+                                    <FileText className="w-4 h-4" />
+                                    {assignment.fileUrl.includes(".pdf") ? "Open PDF" : "Download File"}
+                                  </a>
+                                </div>
+                              )}
 
-                                if (!fileInput || !fileInput.files[0]) {
-                                  alert("Please select a file to submit.");
-                                  return;
-                                }
-
-                                const formData = new FormData();
-                                formData.append("file", fileInput.files[0]);
-                                formData.append("studentId", user._id);
-
-                                handleAssignmentSubmit(assignment._id, formData, courseId);
-                              }}
-                            >
-                              <input
-                                type="file"
-                                name="file"
-                                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                                required
-                              />
-                              <button
-                                type="submit"
-                                className={`mt-4 px-4 py-2 rounded-lg ${
-                                  submittingAssignments[assignment._id]
-                                    ? "bg-gray-500 cursor-not-allowed"
-                                    : alreadySubmitted
-                                    ? "bg-green-500 cursor-not-allowed"
-                                    : "bg-blue-500 hover:bg-blue-600"
-                                } text-white`}
-                                disabled={submittingAssignments[assignment._id] || alreadySubmitted || deadlinePassed}
-                              >
-                                {submittingAssignments[assignment._id]
-                                  ? "Submitting..."
-                                  : alreadySubmitted
-                                  ? "Already Submitted"
-                                  : "Submit Assignment"}
-                              </button>
-                            </form>
-                          ) : alreadySubmitted ? (
-                            <p className="text-green-500 mt-4">Assignment already submitted!</p>
-                          ) : (
-                            <p className="text-red-500 mt-4">Deadline passed. Cannot submit.</p>
-                          )} */}
-                        </li>
-                      );
-                    })}
-                  </ul>
-                ) : (
-                  <p>No assignments available for this class.</p>
-                )}
+                              {/* Status Badges */}
+                              <div className="flex gap-2">
+                                {deadlinePassed && (
+                                  <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold">
+                                    Deadline Passed
+                                  </span>
+                                )}
+                                {alreadySubmitted && (
+                                  <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
+                                    Submitted
+                                  </span>
+                                )}
+                              </div>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    ) : (
+                      <p className="text-slate-600 italic">No assignments for this session yet.</p>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       ) : (
-        <p>No classes available for this course.</p>
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-white rounded-2xl shadow-xl p-12 text-center border border-slate-200">
+            <div className="mb-6 flex justify-center">
+              <div className="p-4 bg-blue-100 rounded-lg">
+                <BookOpen className="w-12 h-12 text-blue-600" />
+              </div>
+            </div>
+            <h2 className="text-2xl font-bold text-slate-900 mb-3">No Classes Available</h2>
+            <p className="text-slate-600 text-lg">There are no class sessions available for this course yet.</p>
+          </div>
+        </div>
       )}
     </div>
   );

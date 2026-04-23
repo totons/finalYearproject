@@ -6,7 +6,7 @@ const ClassInfo = ({ oneCls }) => {
     return (
 
         
-        <div className="flex justify-center items-center p-6">
+        <div className="flex justify-center items-center ">
             <div className="card card-compact md:w-96 w-full bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900 shadow-xl rounded-lg transform transition-transform duration-300 hover:scale-105 hover:shadow-2xl">
                 <figure className="relative">
                     <img

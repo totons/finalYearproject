@@ -7,7 +7,6 @@ import { AuthContext } from '../../../provider/AuthProvider';
 
 const UpdateProfile = () => {
     const { user } = useContext(AuthContext);
-    console.log(user);
     const [formData, setFormData] = useState({
         skills: '',
         githubLink: '',
@@ -69,7 +68,6 @@ const UpdateProfile = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log(formData);
         const config = {
             headers: { Authorization: `Bearer ${Cookies.get('token')}` }
         };
@@ -91,165 +89,282 @@ const UpdateProfile = () => {
     };
 
     return (
-        <form onSubmit={handleSubmit} className="max-w-xl mx-auto p-8 bg-gray-50 shadow-lg rounded-lg">
-            <h2 className="text-3xl font-bold text-center mb-6 text-blue-600">Instructor Profile</h2>
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-8 px-0 sm:px-6 lg:px-8">
+            <div className="max-w-7xl mx-auto">
+                <div className="bg-white shadow-xl rounded-2xl overflow-hidden">
+                    {/* Header */}
+                    <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-6 sm:px-8 py-8 sm:py-10">
+                        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white text-center">
+                            Instructor Profile
+                        </h2>
+                        <p className="text-blue-100 text-center mt-2 text-sm sm:text-base">
+                            Update your professional information
+                        </p>
+                    </div>
 
-            <div className="mb-5">
-                <label className="block text-sm font-medium text-gray-800">Skills</label>
-                <input
-                    type="text"
-                    name="skills"
-                    value={formData.skills}
-                    onChange={handleChange}
-                    className="mt-1 p-3 block w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none transition duration-150"
-                    placeholder="Enter your skills"
-                />
-            </div>
+                    <form onSubmit={handleSubmit} className="px-6 sm:px-8 py-8 space-y-8">
+                        {/* Personal Information Section */}
+                        <div className="space-y-6">
+                            <h3 className="text-xl font-semibold text-gray-800 border-b-2 border-blue-500 pb-2">
+                                Personal Information
+                            </h3>
+                            
+                            <div className="grid grid-cols-1 gap-6">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Skills
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="skills"
+                                        value={formData.skills}
+                                        onChange={handleChange}
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 outline-none"
+                                        placeholder="e.g., JavaScript, React, Node.js"
+                                    />
+                                </div>
 
-            <div className="mb-5">
-                <label className="block text-sm font-medium text-gray-800">GitHub Link</label>
-                <input
-                    type="url"
-                    name="githubLink"
-                    value={formData.githubLink}
-                    onChange={handleChange}
-                    className="mt-1 p-3 block w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none transition duration-150"
-                    placeholder="https://github.com/username"
-                />
-            </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            GitHub Profile
+                                        </label>
+                                        <input
+                                            type="url"
+                                            name="githubLink"
+                                            value={formData.githubLink}
+                                            onChange={handleChange}
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 outline-none"
+                                            placeholder="https://github.com/username"
+                                        />
+                                    </div>
 
-            <div className="mb-5">
-                <label className="block text-sm font-medium text-gray-800">LinkedIn Link</label>
-                <input
-                    type="url"
-                    name="linkedInLink"
-                    value={formData.linkedInLink}
-                    onChange={handleChange}
-                    className="mt-1 p-3 block w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none transition duration-150"
-                    placeholder="https://linkedin.com/in/username"
-                />
-            </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            LinkedIn Profile
+                                        </label>
+                                        <input
+                                            type="url"
+                                            name="linkedInLink"
+                                            value={formData.linkedInLink}
+                                            onChange={handleChange}
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 outline-none"
+                                            placeholder="https://linkedin.com/in/username"
+                                        />
+                                    </div>
+                                </div>
 
-            <div className="mb-5">
-                <label className="block text-sm font-medium text-gray-800">About Us</label>
-                <textarea
-                    name="aboutUs"
-                    value={formData.aboutUs}
-                    onChange={handleChange}
-                    className="mt-1 p-3 block w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none transition duration-150"
-                    rows="4"
-                    placeholder="Tell us about yourself..."
-                />
-            </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        About You
+                                    </label>
+                                    <textarea
+                                        name="aboutUs"
+                                        value={formData.aboutUs}
+                                        onChange={handleChange}
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 outline-none resize-none"
+                                        rows="5"
+                                        placeholder="Tell us about your teaching experience and expertise..."
+                                    />
+                                </div>
+                            </div>
+                        </div>
 
-            <h3 className="text-lg font-bold mt-8 mb-3">Work Experience</h3>
-            {formData.workExperience.map((work, index) => (
-                <div key={index} className="mb-4 border-t border-gray-300 pt-4">
-                    <input
-                        type="text"
-                        name="company"
-                        placeholder="Company"
-                        value={work.company}
-                        onChange={(e) => handleWorkExperienceChange(index, e)}
-                        className="mt-1 mb-2 p-3 block w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none transition duration-150"
-                    />
-                    <input
-                        type="text"
-                        name="position"
-                        placeholder="Position"
-                        value={work.position}
-                        onChange={(e) => handleWorkExperienceChange(index, e)}
-                        className="mt-1 mb-2 p-3 block w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none transition duration-150"
-                    />
-                    <input
-                        type="date"
-                        name="startDate"
-                        value={work.startDate}
-                        onChange={(e) => handleWorkExperienceChange(index, e)}
-                        className="mt-1 mb-2 p-3 block w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none transition duration-150"
-                    />
-                    <input
-                        type="date"
-                        name="endDate"
-                        value={work.endDate}
-                        onChange={(e) => handleWorkExperienceChange(index, e)}
-                        className="mt-1 mb-2 p-3 block w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none transition duration-150"
-                    />
-                    <textarea
-                        name="description"
-                        placeholder="Description"
-                        value={work.description}
-                        onChange={(e) => handleWorkExperienceChange(index, e)}
-                        className="mt-1 mb-2 p-3 block w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none transition duration-150"
-                        rows="2"
-                    />
-                    <button
-                        type="button"
-                        onClick={() => removeWorkExperience(index)}
-                        className="text-red-600 hover:underline"
-                    >
-                        Remove Work Experience
-                    </button>
+                        {/* Work Experience Section */}
+                        <div className="space-y-6">
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-xl font-semibold text-gray-800 border-b-2 border-purple-500 pb-2 flex-grow">
+                                    Work Experience
+                                </h3>
+                            </div>
+
+                            <div className="space-y-6">
+                                {formData.workExperience.map((work, index) => (
+                                    <div key={index} className="bg-gray-50 rounded-xl p-6 border border-gray-200 hover:border-blue-300 transition duration-200">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <span className="text-sm font-medium text-gray-500">
+                                                Experience #{index + 1}
+                                            </span>
+                                            {formData.workExperience.length > 1 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeWorkExperience(index)}
+                                                    className="text-red-600 hover:text-red-700 text-sm font-medium hover:underline transition duration-150"
+                                                >
+                                                    Remove
+                                                </button>
+                                            )}
+                                        </div>
+
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div className="sm:col-span-2">
+                                                <input
+                                                    type="text"
+                                                    name="company"
+                                                    placeholder="Company Name"
+                                                    value={work.company}
+                                                    onChange={(e) => handleWorkExperienceChange(index, e)}
+                                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200 outline-none bg-white"
+                                                />
+                                            </div>
+                                            <div className="sm:col-span-2">
+                                                <input
+                                                    type="text"
+                                                    name="position"
+                                                    placeholder="Position/Title"
+                                                    value={work.position}
+                                                    onChange={(e) => handleWorkExperienceChange(index, e)}
+                                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200 outline-none bg-white"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs text-gray-600 mb-1">Start Date</label>
+                                                <input
+                                                    type="date"
+                                                    name="startDate"
+                                                    value={work.startDate}
+                                                    onChange={(e) => handleWorkExperienceChange(index, e)}
+                                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200 outline-none bg-white"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs text-gray-600 mb-1">End Date</label>
+                                                <input
+                                                    type="date"
+                                                    name="endDate"
+                                                    value={work.endDate}
+                                                    onChange={(e) => handleWorkExperienceChange(index, e)}
+                                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200 outline-none bg-white"
+                                                />
+                                            </div>
+                                            <div className="sm:col-span-2">
+                                                <textarea
+                                                    name="description"
+                                                    placeholder="Description of your role and achievements..."
+                                                    value={work.description}
+                                                    onChange={(e) => handleWorkExperienceChange(index, e)}
+                                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200 outline-none resize-none bg-white"
+                                                    rows="3"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <button 
+                                type="button" 
+                                onClick={addWorkExperience} 
+                                className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition duration-200 font-medium shadow-md hover:shadow-lg"
+                            >
+                                + Add Work Experience
+                            </button>
+                        </div>
+
+                        {/* Education Experience Section */}
+                        <div className="space-y-6">
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-xl font-semibold text-gray-800 border-b-2 border-green-500 pb-2 flex-grow">
+                                    Education
+                                </h3>
+                            </div>
+
+                            <div className="space-y-6">
+                                {formData.educationExperience.map((education, index) => (
+                                    <div key={index} className="bg-gray-50 rounded-xl p-6 border border-gray-200 hover:border-green-300 transition duration-200">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <span className="text-sm font-medium text-gray-500">
+                                                Education #{index + 1}
+                                            </span>
+                                            {formData.educationExperience.length > 1 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeEducationExperience(index)}
+                                                    className="text-red-600 hover:text-red-700 text-sm font-medium hover:underline transition duration-150"
+                                                >
+                                                    Remove
+                                                </button>
+                                            )}
+                                        </div>
+
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div className="sm:col-span-2">
+                                                <input
+                                                    type="text"
+                                                    name="institution"
+                                                    placeholder="Institution Name"
+                                                    value={education.institution}
+                                                    onChange={(e) => handleEducationExperienceChange(index, e)}
+                                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-200 outline-none bg-white"
+                                                />
+                                            </div>
+                                            <div className="sm:col-span-2">
+                                                <input
+                                                    type="text"
+                                                    name="degree"
+                                                    placeholder="Degree/Qualification"
+                                                    value={education.degree}
+                                                    onChange={(e) => handleEducationExperienceChange(index, e)}
+                                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-200 outline-none bg-white"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs text-gray-600 mb-1">Start Date</label>
+                                                <input
+                                                    type="date"
+                                                    name="startDate"
+                                                    value={education.startDate}
+                                                    onChange={(e) => handleEducationExperienceChange(index, e)}
+                                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-200 outline-none bg-white"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs text-gray-600 mb-1">End Date</label>
+                                                <input
+                                                    type="date"
+                                                    name="endDate"
+                                                    value={education.endDate}
+                                                    onChange={(e) => handleEducationExperienceChange(index, e)}
+                                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-200 outline-none bg-white"
+                                                />
+                                            </div>
+                                            <div className="sm:col-span-2">
+                                                <textarea
+                                                    name="description"
+                                                    placeholder="Description of your studies and achievements..."
+                                                    value={education.description}
+                                                    onChange={(e) => handleEducationExperienceChange(index, e)}
+                                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-200 outline-none resize-none bg-white"
+                                                    rows="3"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <button 
+                                type="button" 
+                                onClick={addEducationExperience} 
+                                className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-green-600 to-teal-600 text-white rounded-lg hover:from-green-700 hover:to-teal-700 transition duration-200 font-medium shadow-md hover:shadow-lg"
+                            >
+                                + Add Education
+                            </button>
+                        </div>
+
+                        {/* Submit Button */}
+                        <div className="pt-6 border-t border-gray-200">
+                            <button 
+                                type="submit" 
+                                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 px-6 rounded-xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-4 focus:ring-blue-300 transition duration-200 font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                            >
+                                Update Profile
+                            </button>
+                        </div>
+                    </form>
                 </div>
-            ))}
-            <button type="button" onClick={addWorkExperience} className="text-blue-600 hover:underline mb-6">Add Work Experience</button>
-
-            <h3 className="text-lg font-bold mt-8 mb-3">Education Experience</h3>
-            {formData.educationExperience.map((education, index) => (
-                <div key={index} className="mb-4 border-t border-gray-300 pt-4">
-                    <input
-                        type="text"
-                        name="institution"
-                        placeholder="Institution"
-                        value={education.institution}
-                        onChange={(e) => handleEducationExperienceChange(index, e)}
-                        className="mt-1 mb-2 p-3 block w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none transition duration-150"
-                    />
-                    <input
-                        type="text"
-                        name="degree"
-                        placeholder="Degree"
-                        value={education.degree}
-                        onChange={(e) => handleEducationExperienceChange(index, e)}
-                        className="mt-1 mb-2 p-3 block w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none transition duration-150"
-                    />
-                    <input
-                        type="date"
-                        name="startDate"
-                        value={education.startDate}
-                        onChange={(e) => handleEducationExperienceChange(index, e)}
-                        className="mt-1 mb-2 p-3 block w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none transition duration-150"
-                    />
-                    <input
-                        type="date"
-                        name="endDate"
-                        value={education.endDate}
-                        onChange={(e) => handleEducationExperienceChange(index, e)}
-                        className="mt-1 mb-2 p-3 block w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none transition duration-150"
-                    />
-                    <textarea
-                        name="description"
-                        placeholder="Description"
-                        value={education.description}
-                        onChange={(e) => handleEducationExperienceChange(index, e)}
-                        className="mt-1 mb-2 p-3 block w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none transition duration-150"
-                        rows="2"
-                    />
-                    <button
-                        type="button"
-                        onClick={() => removeEducationExperience(index)}
-                        className="text-red-600 hover:underline"
-                    >
-                        Remove Education Experience
-                    </button>
-                </div>
-            ))}
-            <button type="button" onClick={addEducationExperience} className="text-blue-600 hover:underline mb-6">Add Education Experience</button>
-
-            <button type="submit" className="w-full bg-blue-600 text-white p-3 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-150">
-                Update Profile
-            </button>
-        </form>
+            </div>
+        </div>
     );
 };
 

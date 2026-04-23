@@ -1,70 +1,121 @@
-
-import { Link} from "react-router-dom";
+import { Link } from "react-router-dom";
 import { AuthContext } from "../../../provider/AuthProvider";
-import { useContext } from "react";
-
-
+import { useContext, useState } from "react";
+import { Menu, X, GraduationCap } from "lucide-react";
 
 const Navbar = () => {
-   
-    const {user,logOut}=useContext(AuthContext)
+    const { user, logOut } = useContext(AuthContext);
+    const [isOpen, setIsOpen] = useState(false);
 
+    const toggleMenu = () => setIsOpen(!isOpen);
 
+    const navLinks = [
+        { to: "/", label: "Home" },
+        { to: "/instructor", label: "Instructor" },
+        { to: "/class", label: "Courses" },
+        { to: "/dashboard", label: "Dashboard" }
+    ];
 
-    const navOptions = <>
-        <li className="text-xl font-semibold"><Link to="/">Home</Link></li>
-        <li className="text-xl font-semibold"><Link to="/instructor">Instructor</Link></li>
-        <li className="text-xl font-semibold"><Link to="/class">Classes</Link></li>
-        <li className="text-xl font-semibold"><Link to="/dashboard">Dashboard</Link></li>
-    </>
     return (
-        <div className="navbar bg-slate-300">
-            <div className="navbar-start">
-                <div className="dropdown">
-                <label tabIndex={0} className="btn btn-ghost lg:hidden">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h8m-8 6h16" /></svg>
-                </label>
-                <ul tabIndex={0} className="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52">
-                    {navOptions}
-                </ul>
-                </div>
-                <div className="flex items-center gap-5 md:ml-5">
-                    <div>
-                        {/* <img src={sportsImg} alt="" className="w-[50px] md:w-[80px]"/> */}
-                    </div>
-                    <div>
-                        <p className="uppercase md:text-3xl font-bold">Online </p>
-                        <p className="md:text-xl uppercase text-yellow-900">Learning Academy</p>
-                    </div>
-                </div>
-            </div>
-            <div className="navbar-center hidden lg:flex">
-                <ul className="menu menu-horizontal px-1">
-                    {navOptions}
-                </ul>
-            </div>
-            <div className="navbar-end md:gap-4">
-                {/* <div className="hidden md:block">
-                    <label className="swap">
-                        <input type="checkbox" className="w-full" onChange={handleToggle}/>
-                        <div className="swap-on p-2 font-semibold">Light</div>
-                        <div className="swap-off p-2 font-semibold">Dark</div>
-                    </label>
-                </div> */}
-             <div className="flex items-center gap-1 md:gap-3 md:mr-5">
-                        {/* <img src={user.photoURL} alt="" className="w-[50px] rounded-lg" />
-                        <button onClick={handleLogout} className="uppercase btn btn-warning">Log Out</button> */}
-                    </div> 
-                        <div>
-
-                            {
-                                user ? <button className="btn" onClick={async()=>await logOut()}>logout</button>:<Link to="/login"><button className="uppercase btn btn-warning md:mr-5">Log In</button></Link>
-                            }
-                            
+        <nav className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 shadow-lg sticky top-0 z-50">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="flex items-center justify-between h-20">
+                    {/* Logo Section */}
+                    <Link to="/" className="flex items-center space-x-3 group">
+                        <div className="bg-gradient-to-br from-yellow-400 to-orange-500 p-2 rounded-lg transform group-hover:scale-110 transition-transform duration-300">
+                            <GraduationCap className="w-8 h-8 text-white" />
                         </div>
-                
+                        <div className="hidden sm:block">
+                            <p className="text-white text-2xl font-bold uppercase tracking-wide">
+                                Online Learning 
+                            </p>
+                            <p className="text-yellow-400 text-sm uppercase tracking-widest">
+                                & ASSIGNMENT SUBMISSION SYSTEM
+                            </p>
+                        </div>
+                    </Link>
+
+                    {/* Desktop Navigation */}
+                    <div className="hidden lg:flex items-center space-x-1">
+                        {navLinks.map((link) => (
+                            <Link
+                                key={link.to}
+                                to={link.to}
+                                className="text-white px-4 py-2 rounded-lg text-lg font-semibold hover:bg-slate-600 hover:text-yellow-400 transition-all duration-300 transform hover:scale-105"
+                            >
+                                {link.label}
+                            </Link>
+                        ))}
+                    </div>
+
+                    {/* Auth Section */}
+                    <div className="hidden lg:flex items-center space-x-4">
+                        {user ? (
+                            <button
+                                onClick={async () => await logOut()}
+                                className="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-2.5 rounded-lg font-semibold uppercase tracking-wide hover:from-red-600 hover:to-red-700 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
+                            >
+                                Logout
+                            </button>
+                        ) : (
+                            <Link to="/login">
+                                <button className="bg-gradient-to-r from-yellow-400 to-orange-500 text-slate-900 px-6 py-2.5 rounded-lg font-semibold uppercase tracking-wide hover:from-yellow-500 hover:to-orange-600 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl">
+                                    Log In
+                                </button>
+                            </Link>
+                        )}
+                    </div>
+
+                    {/* Mobile Menu Button */}
+                    <button
+                        onClick={toggleMenu}
+                        className="lg:hidden text-white p-2 rounded-lg hover:bg-slate-600 transition-colors duration-300"
+                        aria-label="Toggle menu"
+                    >
+                        {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                    </button>
+                </div>
             </div>
-        </div>
+
+            {/* Mobile Menu */}
+            <div
+                className={`lg:hidden overflow-hidden transition-all duration-300 ease-in-out ${
+                    isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+                }`}
+            >
+                <div className="px-4 pt-2 pb-4 space-y-2 bg-slate-800 border-t border-slate-700">
+                    {navLinks.map((link) => (
+                        <Link
+                            key={link.to}
+                            to={link.to}
+                            onClick={() => setIsOpen(false)}
+                            className="block text-white px-4 py-3 rounded-lg text-lg font-semibold hover:bg-slate-700 hover:text-yellow-400 transition-all duration-300"
+                        >
+                            {link.label}
+                        </Link>
+                    ))}
+                    <div className="pt-2">
+                        {user ? (
+                            <button
+                                onClick={async () => {
+                                    await logOut();
+                                    setIsOpen(false);
+                                }}
+                                className="w-full bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-lg font-semibold uppercase tracking-wide hover:from-red-600 hover:to-red-700 transition-all duration-300 shadow-lg"
+                            >
+                                Logout
+                            </button>
+                        ) : (
+                            <Link to="/login" onClick={() => setIsOpen(false)}>
+                                <button className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 text-slate-900 px-6 py-3 rounded-lg font-semibold uppercase tracking-wide hover:from-yellow-500 hover:to-orange-600 transition-all duration-300 shadow-lg">
+                                    Log In
+                                </button>
+                            </Link>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </nav>
     );
 };
 

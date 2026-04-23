@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { getBaseUrl } from '../../../utils/baseUrl';
 
 const AddCertificateModal = ({ studentId, courseId, onClose, onSubmit }) => {
   const [image, setImage] = useState(null);
@@ -35,7 +36,7 @@ const AddCertificateModal = ({ studentId, courseId, onClose, onSubmit }) => {
     });
   
     try {
-      const response = await fetch('http://127.0.0.1:5004/api/certificate/', {
+      const response = await fetch(`${getBaseUrl()}/api/certificate/`, {
         method: 'POST',
         body: formData,
       });

@@ -72,39 +72,39 @@ export  const router = createBrowserRouter([
 
     {
       path: '/dashboard',
-      element: <PrivateRoute><DashBord/></PrivateRoute>,
+      element: <PrivateRoute allowedRoles={["admin", "instruct","student"]} ><DashBord/></PrivateRoute>,
       children: [
         
         {
           path: '/dashboard/addcourse',
-          element: <AddCourse/>,
+          element:<PrivateRoute allowedRoles={["instruct"]} > <AddCourse/></PrivateRoute>,
         },
 
         {
           path: '/dashboard/UpdateProfile',
-          element: <UpdateProfile/>,
+          element: <PrivateRoute allowedRoles={["instruct"]}><UpdateProfile/></PrivateRoute>,
         },
          {
           path: '/dashboard/profile',
-          element:<Profile/>,
+          element: <PrivateRoute allowedRoles={["instruct"]}><Profile/></PrivateRoute>,
         },
         
  {
           path: '/dashboard/panging',
-          element:<PandingCourse/>,
+          element:  <PrivateRoute allowedRoles={["admin"]}> <PandingCourse/> </PrivateRoute>,
         },
 
  {
           path: '/dashboard/myClass',
-          element:<AllCourse/>,
+          element:<PrivateRoute allowedRoles={["instruct"]}><AllCourse/></PrivateRoute>,
         },
         {
           path: '/dashboard/course',
-          element:<ShowAllClass/>,
+          element: <PrivateRoute allowedRoles={["admin"]}><ShowAllClass/></PrivateRoute>,
         },
  {
           path: '/dashboard/enrollClass',
-          element:<EnrollmentClass/>,
+          element: <PrivateRoute allowedRoles={["student"]}><EnrollmentClass/></PrivateRoute>,
         },
 
         {
@@ -114,21 +114,21 @@ export  const router = createBrowserRouter([
 
         {
           path: '/dashboard/enrollsetudents/:courseId',
-          element:<Show/>,
+          element: <PrivateRoute allowedRoles={["instruct"]}><Show/></PrivateRoute>,
         },
         {
           path: '/dashboard/student-statistics/:courseId',
-          element:<StudentStatistics/>,
+          element: <PrivateRoute allowedRoles={["instruct"]}><StudentStatistics/></PrivateRoute>,
         },
 
         {
           path: '/dashboard/addclass/:courseId',
-          element:<AddClass/>,
+          element: <PrivateRoute allowedRoles={["instruct"]}><AddClass/></PrivateRoute>,
         },
         
         {
           path: '/dashboard/showallclass/:courseId',
-          element:<Classshow/>,
+          element:<PrivateRoute allowedRoles={["student"]}> <Classshow/></PrivateRoute>,
         },
         {
           path: '/dashboard/showallclasss/:courseId',
@@ -140,20 +140,20 @@ export  const router = createBrowserRouter([
 
         {
           path: '/dashboard/addassigment/:courseId',
-          element:<AddAssignment/>,
+          element: <PrivateRoute allowedRoles={["instruct"]}><AddAssignment/></PrivateRoute>,
         },
         {
           path:"/dashboard/courses/update/:courseId" ,
-          element:<UpdateCourse/>
+          element: <PrivateRoute allowedRoles={["instruct"]}><UpdateCourse/></PrivateRoute>
         },   
 
         {
           path:"/dashboard/enrollsetudent/:courseId/student/:studentId" ,
-          element:<ShowAssigment/>,
+          element:<PrivateRoute allowedRoles={["instruct","admin"]}><ShowAssigment/></PrivateRoute> ,
         }   ,
            {
           path:"/dashboard/courses/:courseId/users/:studentId" ,
-          element:<Result/>,
+          element: <PrivateRoute allowedRoles={["student"]}><Result/></PrivateRoute>,
         }   ,
     ]
     }

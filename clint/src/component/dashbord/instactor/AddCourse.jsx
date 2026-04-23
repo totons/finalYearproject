@@ -76,79 +76,143 @@ const AddCourse = () => {
     };
 
     return (
-        <form onSubmit={handleSubmit} className="p-8 bg-white shadow-2xl rounded-lg max-w-xl mx-auto mt-12 space-y-6 transform transition duration-500 hover:shadow-xl">
-            <h2 className="text-3xl font-bold text-center text-blue-800 mb-8">Add a New Course</h2>
-
-            <label className="block text-gray-700 font-medium">Title</label>
-            <input
-                name="title"
-                onChange={handleChange}
-                required
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300"
-                placeholder="Enter course title"
-            />
-
-            <label className="block text-gray-700 font-medium">Image File</label>
-            <input
-                type="file"
-                onChange={handleFileChange}
-                required
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300"
-            />
-
-            <label className="block text-gray-700 font-medium">Description</label>
-            <textarea
-                name="description"
-                onChange={handleChange}
-                required
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300"
-                placeholder="Enter course description"
-            ></textarea>
-
-            <label className="block text-gray-700 font-medium">Enroll Last Date</label>
-            <input
-                type="date"
-                name="enrollLastDate"
-                onChange={handleChange}
-                required
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300"
-            />
-
-            <label className="block text-gray-700 font-medium">Skills</label>
-            <input
-                name="skills"
-                onChange={handleChange}
-                required
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300"
-                placeholder="Enter skills covered"
-            />
-
-            <label className="block text-gray-700 font-medium">Price</label>
-            <input
-                type="number"
-                name="price"
-                onChange={handleChange}
-                required
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300"
-                placeholder="Enter course price"
-            />
-
-            <label className="block text-gray-700 font-medium">Rating</label>
-            <input
-                type="number"
-                name="rating"
-                onChange={handleChange}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300"
-                placeholder="Enter course rating"
-            />
-
-            <button
-                type="submit"
-                className="w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition duration-300 transform hover:scale-105"
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-6 sm:py-12 px-4 sm:px-6 lg:px-8">
+            <form 
+                onSubmit={handleSubmit} 
+                className="bg-white  rounded-2xl max-w-5xl mx-auto p-6 sm:p-8 lg:p-10 space-y-6 sm:space-y-8"
             >
-                Add Course
-            </button>
-        </form>
+                {/* Header */}
+                <div className="text-center pb-4 border-b border-gray-200">
+                    <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 mb-2">
+                        Add a New Course
+                    </h2>
+                    <p className="text-gray-600 text-sm sm:text-base">Fill in the course details below</p>
+                </div>
+
+                {/* Title & Image File Row */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                    <div className="w-full">
+                        <label className="block text-gray-700 font-semibold mb-2 text-sm sm:text-base">
+                            Course Title <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                            name="title"
+                            onChange={handleChange}
+                            required
+                            className="w-full px-4 py-3 sm:py-3.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 text-sm sm:text-base"
+                            placeholder="e.g., Web Development Bootcamp"
+                        />
+                    </div>
+
+                    <div className="w-full">
+                        <label className="block text-gray-700 font-semibold mb-2 text-sm sm:text-base">
+                            Course Image <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                            type="file"
+                            onChange={handleFileChange}
+                            required
+                            className="w-full px-4 py-2.5 sm:py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 text-sm sm:text-base file:mr-3 sm:file:mr-4 file:py-2 file:px-3 sm:file:px-4 file:rounded-lg file:border-0 file:text-xs sm:file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 file:cursor-pointer"
+                        />
+                    </div>
+                </div>
+
+                {/* Description */}
+                <div className="w-full">
+                    <label className="block text-gray-700 font-semibold mb-2 text-sm sm:text-base">
+                        Description <span className="text-red-500">*</span>
+                    </label>
+                    <textarea
+                        name="description"
+                        onChange={handleChange}
+                        required
+                        rows="4"
+                        className="w-full px-4 py-3 sm:py-3.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 resize-none text-sm sm:text-base"
+                        placeholder="Provide a comprehensive description of the course..."
+                    ></textarea>
+                </div>
+
+                {/* Enroll Last Date & Skills Row */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                    <div className="w-full">
+                        <label className="block text-gray-700 font-semibold mb-2 text-sm sm:text-base">
+                            Enrollment Deadline <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                            type="date"
+                            name="enrollLastDate"
+                            onChange={handleChange}
+                            required
+                            className="w-full px-4 py-3 sm:py-3.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 text-sm sm:text-base"
+                        />
+                    </div>
+
+                    <div className="w-full">
+                        <label className="block text-gray-700 font-semibold mb-2 text-sm sm:text-base">
+                            Skills Covered <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                            name="skills"
+                            onChange={handleChange}
+                            required
+                            className="w-full px-4 py-3 sm:py-3.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 text-sm sm:text-base"
+                            placeholder="e.g., HTML, CSS, JavaScript, React"
+                        />
+                    </div>
+                </div>
+
+                {/* Price & Rating Row */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                    <div className="w-full">
+                        <label className="block text-gray-700 font-semibold mb-2 text-sm sm:text-base">
+                            Price <span className="text-red-500">*</span>
+                        </label>
+                        <div className="relative">
+                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-sm sm:text-base">$</span>
+                            <input
+                                type="number"
+                                name="price"
+                                onChange={handleChange}
+                                required
+                                className="w-full pl-8 sm:pl-10 pr-4 py-3 sm:py-3.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 text-sm sm:text-base"
+                                placeholder="Enter course price"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="w-full">
+                        <label className="block text-gray-700 font-semibold mb-2 text-sm sm:text-base">
+                            Rating
+                        </label>
+                        <div className="relative">
+                            <input
+                                type="number"
+                                name="rating"
+                                onChange={handleChange}
+                                className="w-full px-4 py-3 sm:py-3.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 text-sm sm:text-base"
+                                placeholder="e.g., 4.5"
+                            />
+                            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-yellow-500 text-lg">★</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Submit Button */}
+                <div className="pt-4">
+                    <button
+                        type="submit"
+                        className="w-full py-3.5 sm:py-4 px-6 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl text-sm sm:text-base"
+                    >
+                        Create Course
+                    </button>
+                </div>
+
+                {/* Footer Note */}
+                <p className="text-center text-gray-500 text-xs sm:text-sm pt-2">
+                    <span className="text-red-500">*</span> Required fields
+                </p>
+            </form>
+        </div>
     );
 };
 
