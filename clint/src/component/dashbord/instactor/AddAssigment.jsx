@@ -38,53 +38,121 @@ const AddAssignment = () => {
     fetchClasses();
   }, [courseId]);
 
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+
+  //   if (!title || !description || !submissionDeadline || !classId) {
+  //     Swal.fire("Missing Fields", "All fields are required!", "warning");
+  //     return;
+  //   }
+
+  //   const formData = new FormData();
+  //   formData.append("title", title);
+  //   formData.append("description", description);
+  //   formData.append("submissionDeadline", submissionDeadline);
+  //   formData.append("classId", classId);
+  //   if (file) formData.append("file", file);
+
+  //   try {
+  //     setSubmitting(true);
+  //     const response = await fetch(
+  //       `${getBaseUrl()}/api/${courseId}/add-assignment`,
+  //       { method: "POST", body: formData }
+  //     );
+
+  //     const data = await response.json();
+
+  //     if (response.ok) {
+  //       Swal.fire({
+  //         icon: "success",
+  //         title: "Assignment Added",
+  //         text: "Assignment created successfully!",
+  //         timer: 1800,
+  //         showConfirmButton: false,
+  //       });
+
+  //       setTitle("");
+  //       setDescription("");
+  //       setSubmissionDeadline("");
+  //       setClassId("");
+  //       setFile(null);
+  //     } else {
+  //       Swal.fire("Error", data.message || "Failed to add assignment", "error");
+  //     }
+  //   } catch (err) {
+  //     Swal.fire("Error", "Something went wrong!", "error");
+  //   } finally {
+  //     setSubmitting(false);
+  //   }
+  // };
+
+
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!title || !description || !submissionDeadline || !classId) {
-      Swal.fire("Missing Fields", "All fields are required!", "warning");
-      return;
-    }
+  if (!title || !description || !submissionDeadline || !classId) {
+    Swal.fire("Missing Fields", "All fields are required!", "warning");
+    return;
+  }
 
-    const formData = new FormData();
-    formData.append("title", title);
-    formData.append("description", description);
-    formData.append("submissionDeadline", submissionDeadline);
-    formData.append("classId", classId);
-    if (file) formData.append("file", file);
+  if (!file) {
+    Swal.fire("Missing File", "Please upload an assignment file!", "warning");
+    return;
+  }
 
-    try {
-      setSubmitting(true);
-      const response = await fetch(
-        `${getBaseUrl()}/api/${courseId}/add-assignment`,
-        { method: "POST", body: formData }
-      );
+  const formData = new FormData();
+  formData.append("title", title);
+  formData.append("description", description);
+  formData.append("submissionDeadline", submissionDeadline);
+  formData.append("classId", classId);
+  formData.append("file", file);
 
-      const data = await response.json();
+  try {
+    setSubmitting(true);
 
-      if (response.ok) {
-        Swal.fire({
-          icon: "success",
-          title: "Assignment Added",
-          text: "Assignment created successfully!",
-          timer: 1800,
-          showConfirmButton: false,
-        });
-
-        setTitle("");
-        setDescription("");
-        setSubmissionDeadline("");
-        setClassId("");
-        setFile(null);
-      } else {
-        Swal.fire("Error", data.message || "Failed to add assignment", "error");
+    const response = await fetch(
+      `${getBaseUrl()}/api/${courseId}/add-assignment`,
+      {
+        method: "POST",
+        body: formData,
       }
-    } catch (err) {
-      Swal.fire("Error", "Something went wrong!", "error");
-    } finally {
-      setSubmitting(false);
+    );
+
+    const data = await response.json();
+
+    if (response.ok) {
+      Swal.fire({
+        icon: "success",
+        title: "Assignment Added",
+        text: "Assignment created successfully!",
+        timer: 1800,
+        showConfirmButton: false,
+      });
+
+      setTitle("");
+      setDescription("");
+      setSubmissionDeadline("");
+      setClassId("");
+      setFile(null);
+
+      const fileInput = document.querySelector('input[type="file"]');
+      if (fileInput) fileInput.value = "";
+    } else {
+      Swal.fire(
+        "Error",
+        data.message || data.error || "Failed to add assignment",
+        "error"
+      );
     }
-  };
+  } catch (err) {
+    console.error("Add assignment frontend error:", err);
+    Swal.fire("Error", "Something went wrong!", "error");
+  } finally {
+    setSubmitting(false);
+  }
+};
+
+
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-start justify-center px-3 sm:px-6 py-8">
@@ -178,9 +246,9 @@ const AddAssignment = () => {
 
           {/* File Upload */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Upload File (optional)
-            </label>
+           <label className="block text-sm font-semibold text-gray-700 mb-1">
+  Upload File <span className="text-red-500">*</span>
+</label>
             <input
               type="file"
               onChange={(e) => setFile(e.target.files[0])}

@@ -827,7 +827,7 @@ const Classshow = () => {
                                   </div>
                                 </div>
 
-                                {assignment.fileUrl && (
+                                {/* {assignment.fileUrl && (
                                   <a
                                     href={`http://localhost:5004/dashboard/showallclass/${assignment.fileUrl}`}
                                     target="_blank"
@@ -837,7 +837,21 @@ const Classshow = () => {
                                     <Download className="w-4 h-4" />
                                     Download Assignment File
                                   </a>
-                                )}
+                                )} */}
+
+
+                                  {assignment.fileUrl && (
+  <a
+    href={assignment.fileUrl}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-700 font-semibold text-sm mb-4 transition"
+  >
+    <Download className="w-4 h-4" />
+    Download Assignment File
+  </a>
+)}
+
 
                                 {!deadlinePassed && !alreadySubmitted ? (
                                   <form
