@@ -65,7 +65,7 @@ const AllCourse = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4 sm:p-6 lg:p-8">
-            <div className="max-w-7xl mx-auto">
+            <div className=" mx-auto">
                 {/* Header Section with Stats */}
                 <div className="mb-8">
                     <div className="text-center mb-6">

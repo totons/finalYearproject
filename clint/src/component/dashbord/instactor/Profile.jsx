@@ -6,7 +6,7 @@ const Profile = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 py-6 sm:py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-7xl mx-auto">
+            <div className=" mx-auto">
                 <div className="bg-white  rounded-3xl overflow-hidden">
                     {/* Header Section with Gradient */}
                     <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 h-32 sm:h-40 relative">

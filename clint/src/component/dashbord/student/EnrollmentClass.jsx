@@ -57,7 +57,7 @@ const EnrollmentClass = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4 sm:p-6 lg:p-8">
-            <div className="max-w-7xl mx-auto">
+            <div className=" mx-auto">
                 {/* Header */}
                 <div className="mb-12 text-center">
                     <div className="flex items-center justify-center gap-3 mb-4">

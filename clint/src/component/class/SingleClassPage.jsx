@@ -30,48 +30,96 @@ const SingleClassPage = () => {
         fetchCourseData();
     }, [courseId]);
 
+    // const handleEnroll = async () => {
+    //     const token = Cookies.get('token');
+    //     if (!token) {
+    //         Swal.fire({
+    //             icon: 'info',
+    //             title: 'Please log in',
+    //             text: 'You must log in to enroll in this course.',
+    //             showConfirmButton: true,
+    //         });
+    //         return navigate('/login');
+    //     }
+
+    //     setEnrolling(true);
+    //     try {
+    //         await axios.post(
+    //             `${getBaseUrl()}/course/courses/${courseId}/enroll`,
+    //             {},
+    //             {
+    //                 headers: {
+    //                     Authorization: `Bearer ${token}`,
+    //                 },
+    //             }
+    //         );
+
+    //         Swal.fire({
+    //             position: 'center',
+    //             icon: 'success',
+    //             title: 'You have successfully enrolled!',
+    //             showConfirmButton: false,
+    //             timer: 1500,
+    //         });
+    //     } catch (error) {
+    //         Swal.fire({
+    //             position: 'center',
+    //             icon: 'error',
+    //             title: error.response?.data?.message || 'Failed to enroll. Please try again.',
+    //             showConfirmButton: true,
+    //         });
+    //     } finally {
+    //         setEnrolling(false);
+    //     }
+    // };
     const handleEnroll = async () => {
-        const token = Cookies.get('token');
-        if (!token) {
-            Swal.fire({
-                icon: 'info',
-                title: 'Please log in',
-                text: 'You must log in to enroll in this course.',
-                showConfirmButton: true,
-            });
-            return navigate('/login');
-        }
+  const token = Cookies.get("token");
 
-        setEnrolling(true);
-        try {
-            await axios.post(
-                `${getBaseUrl()}/course/courses/${courseId}/enroll`,
-                {},
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
+  if (!token) {
+    Swal.fire({
+      icon: "info",
+      title: "Please log in",
+      text: "You must log in to enroll in this course.",
+      showConfirmButton: true,
+    });
+    return navigate("/login");
+  }
 
-            Swal.fire({
-                position: 'center',
-                icon: 'success',
-                title: 'You have successfully enrolled!',
-                showConfirmButton: false,
-                timer: 1500,
-            });
-        } catch (error) {
-            Swal.fire({
-                position: 'center',
-                icon: 'error',
-                title: error.response?.data?.message || 'Failed to enroll. Please try again.',
-                showConfirmButton: true,
-            });
-        } finally {
-            setEnrolling(false);
-        }
-    };
+  setEnrolling(true);
+
+  try {
+    const res = await axios.post(
+      `${getBaseUrl()}/api/payment/init/${courseId}`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (res.data.free) {
+      Swal.fire({
+        icon: "success",
+        title: "Enrolled successfully!",
+        timer: 1500,
+        showConfirmButton: false,
+      });
+      return navigate("/dashboard/enrollClass");
+    }
+
+    window.location.href = res.data.paymentUrl;
+  } catch (error) {
+    Swal.fire({
+      icon: "error",
+      title: "Payment failed",
+      text: error.response?.data?.message || "Could not start payment.",
+    });
+  } finally {
+    setEnrolling(false);
+  }
+};
+
 
     if (loading) {
         return (
@@ -185,7 +233,7 @@ const SingleClassPage = () => {
                             {/* Price Card */}
                             <div className="bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl shadow p-6 sm:p-8 text-white">
                                 <div className="flex items-baseline gap-2 mb-2">
-                                    <span className="text-5xl sm:text-6xl font-bold">${course.price}</span>
+                                    <span className="text-5xl sm:text-6xl font-bold">৳ {course.price}</span>
                                     <span className="text-indigo-200">One-time</span>
                                 </div>
                                 <p className="text-indigo-100 text-sm mb-6">Full access forever</p>

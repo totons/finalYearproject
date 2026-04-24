@@ -224,7 +224,9 @@ app.get("/api-docs", (req, res) => {
 </html>
   `);
 });
+import paymentRouter from "./router/payment/payment.route.js";
 
+app.use("/api/payment", paymentRouter);
 app.use("/user", userRouter);
 app.use("/course", courseRouter);
 app.use("/api", classandassigmentRouter);

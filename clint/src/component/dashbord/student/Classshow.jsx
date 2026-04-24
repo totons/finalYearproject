@@ -476,17 +476,35 @@ const Classshow = () => {
 
   const studentId = user?._id;
 
-  const fetchClasses = useCallback(async () => {
-    try {
-      const response = await axios.get(`${getBaseUrl()}/api/${courseId}/classes`);
-      setClasses(response.data.classes || []);
-    } catch (err) {
-      console.error(err);
-      setError("Failed to fetch classes.");
-    } finally {
-      setLoading(false);
-    }
-  }, [courseId]);
+  // const fetchClasses = useCallback(async () => {
+  //   try {
+  //     const response = await axios.get(`${getBaseUrl()}/api/${courseId}/classes`);
+  //     setClasses(response.data.classes || []);
+  //   } catch (err) {
+  //     console.error(err);
+  //     setError("Failed to fetch classes.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // }, [courseId]);
+const fetchClasses = useCallback(async () => {
+  try {
+    const token = Cookies.get("token");
+
+    const response = await axios.get(`${getBaseUrl()}/api/${courseId}/classes`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    setClasses(response.data.classes || []);
+  } catch (err) {
+    console.error(err);
+    setError("Failed to fetch classes.");
+  } finally {
+    setLoading(false);
+  }
+}, [courseId]);
 
   useEffect(() => {
     fetchClasses();

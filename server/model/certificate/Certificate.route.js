@@ -12,7 +12,7 @@ import { isAuthenticated } from '../../midelware/user.auth.js';
 const router = express.Router();
 
 // Routes
-router.post('/', upload.single("image"), isAuthenticated, createCertificate); // Create a certificate
+router.post('/', upload.single("image"),  createCertificate); // Create a certificate
 router.get('/',isAuthenticated, getAllCertificates); // Get all certificates
 router.get('/certificates/:courseId/:userId',   isAuthenticated, getCertificateByCourseAndUser); // Get a certificate by ID
 router.put('/:id',  isAuthenticated, updateCertificate); // Update a certificate

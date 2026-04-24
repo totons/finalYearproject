@@ -16,20 +16,46 @@ const Showclass = () => {
 
   const studentId = user._id;
 
-  useEffect(() => {
-    const fetchClasses = async () => {
-      try {
-        const response = await axios.get(`${getBaseUrl()}/api/${courseId}/classes`);
-        setClasses(response.data.classes);
-      } catch (err) {
-        setError("Failed to fetch classes.");
-      } finally {
-        setLoading(false);
-      }
-    };
+  // useEffect(() => {
+  //   const fetchClasses = async () => {
+  //     try {
+  //       const response = await axios.get(`${getBaseUrl()}/api/${courseId}/classes`);
+  //       setClasses(response.data.classes);
+  //     } catch (err) {
+  //       setError("Failed to fetch classes.");
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
 
-    fetchClasses();
-  }, [courseId]);
+  //   fetchClasses();
+  // }, [courseId]);
+
+  useEffect(() => {
+  const fetchClasses = async () => {
+    try {
+      const token = Cookies.get("token");
+
+      const response = await axios.get(
+        `${getBaseUrl()}/api/${courseId}/classes`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setClasses(response.data.classes || []);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to fetch classes.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchClasses();
+}, [courseId]);
 
   const handleAssignmentSubmit = useCallback(
     async (assignmentId, formData, courseId) => {
@@ -154,7 +180,7 @@ const Showclass = () => {
 
       {/* Classes Grid */}
       {classes.length > 0 ? (
-        <div className="max-w-7xl mx-auto">
+        <div className=" mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {classes.map((classItem, index) => (
               <div

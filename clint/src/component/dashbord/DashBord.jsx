@@ -750,9 +750,16 @@ const Dashboard = () => {
                       <li>
                         <NavLink to="/dashboard/enrollClass" className={navClass}>
                           <FaSchool className="text-base" />
-                          <span>Enrolled Classes</span>
+                          <span>Enrolled Courses</span>
                         </NavLink>
                       </li>
+
+                      <li>
+  <NavLink to="/dashboard/payments" className={navClass}>
+    <FaSchool className="text-base" />
+    <span>Payment History</span>
+  </NavLink>
+</li>
                     </>
                   )}
 

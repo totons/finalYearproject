@@ -79,7 +79,7 @@ const AddCourse = () => {
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-6 sm:py-12 px-4 sm:px-6 lg:px-8">
             <form 
                 onSubmit={handleSubmit} 
-                className="bg-white  rounded-2xl max-w-5xl mx-auto p-6 sm:p-8 lg:p-10 space-y-6 sm:space-y-8"
+                className="bg-white  rounded-2xl  mx-auto p-6 sm:p-8 lg:p-10 space-y-6 sm:space-y-8"
             >
                 {/* Header */}
                 <div className="text-center pb-4 border-b border-gray-200">
@@ -168,7 +168,7 @@ const AddCourse = () => {
                             Price <span className="text-red-500">*</span>
                         </label>
                         <div className="relative">
-                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-sm sm:text-base">$</span>
+                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-sm sm:text-base">৳</span>
                             <input
                                 type="number"
                                 name="price"

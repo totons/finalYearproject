@@ -29,6 +29,7 @@ import Result from "../component/dashbord/student/Result";
 import Showclass from "../component/dashbord/instactor/Showclass";
 import Show from "../component/dashbord/instactor/Show";
 import StudentStatistics from "../component/dashbord/instactor/StudentStatistics"
+import PaymentHistory from "../component/dashbord/student/PaymentHistory";
 export  const router = createBrowserRouter([
     {
       path: "/",
@@ -136,6 +137,35 @@ export  const router = createBrowserRouter([
         },
 
 
+        { path:"/dashboard/payments", 
+          element:<PaymentHistory />
+
+        }
+,
+{
+  path: "/dashboard/payment-success",
+  element: (
+    <h2 className="text-3xl font-bold text-green-600 p-10">
+      Payment Successful! Course enrolled.
+    </h2>
+  ),
+},
+{
+  path: "/dashboard/payment-failed",
+  element: (
+    <h2 className="text-3xl font-bold text-red-600 p-10">
+      Payment Failed!
+    </h2>
+  ),
+},
+{
+  path: "/dashboard/payment-cancel",
+  element: (
+    <h2 className="text-3xl font-bold text-yellow-600 p-10">
+      Payment Cancelled!
+    </h2>
+  ),
+},
 
 
         {
