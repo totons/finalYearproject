@@ -2776,7 +2776,7 @@ const ShowAssignment = () => {
                                 ) === String(studentId) ? (
                                   <div key={submission._id} className="space-y-2">
                                     <Link
-                                      to={`${getBaseUrl()}/dashboard/showallclass/${submission.fileUrl}`}
+                                      to={submission.fileUrl}
                                       target="_blank"
                                       rel="noopener noreferrer"
                                       className="text-blue-600 hover:underline font-medium"
