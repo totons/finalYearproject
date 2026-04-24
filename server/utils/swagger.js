@@ -614,6 +614,7 @@ const swaggerOptions = {
         get: {
           tags: ["User"],
           summary: "Get single user/course related data",
+          security: [{ bearerAuth: [] }],
           parameters: [
             {
               name: "studentId",
@@ -640,6 +641,7 @@ const swaggerOptions = {
       "/course/download-pdf/{courseId}": {
         get: {
           tags: ["Course"],
+          security: [{ bearerAuth: [] }],
           summary: "Generate and download student PDF",
           parameters: [
             {
@@ -922,6 +924,7 @@ const swaggerOptions = {
         get: {
           tags: ["Course"],
           summary: "Get course statistics",
+          security: [{ bearerAuth: [] }],
           parameters: [
             {
               name: "courseId",
@@ -940,6 +943,7 @@ const swaggerOptions = {
         get: {
           tags: ["Course"],
           summary: "Get student mark by course and student ID",
+          security: [{ bearerAuth: [] }],
           parameters: [
             {
               name: "courseId",
@@ -966,6 +970,7 @@ const swaggerOptions = {
         post: {
           tags: ["Class"],
           summary: "Add class to course",
+          security: [{ bearerAuth: [] }],
           parameters: [
             {
               name: "courseId",
@@ -1014,6 +1019,7 @@ const swaggerOptions = {
         get: {
           tags: ["Class"],
           summary: "Get classes by course ID",
+          security: [{ bearerAuth: [] }],
           parameters: [
             {
               name: "courseId",
@@ -1034,6 +1040,7 @@ const swaggerOptions = {
         post: {
           tags: ["Assignment"],
           summary: "Add assignment to course",
+          security: [{ bearerAuth: [] }],
           parameters: [
             {
               name: "courseId",
@@ -1121,6 +1128,7 @@ const swaggerOptions = {
         get: {
           tags: ["Assignment"],
           summary: "Get assignments by course ID",
+          security: [{ bearerAuth: [] }],
           parameters: [
             {
               name: "courseId",
@@ -1178,6 +1186,7 @@ const swaggerOptions = {
         patch: {
           tags: ["Assignment"],
           summary: "Add or update assignment submission review",
+          security: [{ bearerAuth: [] }],
           parameters: [
             {
               name: "assignmentId",
@@ -1221,6 +1230,7 @@ const swaggerOptions = {
         post: {
           tags: ["Certificate"],
           summary: "Create certificate",
+          security: [{ bearerAuth: [] }],
           requestBody: {
             required: true,
             content: {
@@ -1260,6 +1270,7 @@ const swaggerOptions = {
         get: {
           tags: ["Certificate"],
           summary: "Get certificate by course ID and user ID",
+          security: [{ bearerAuth: [] }],
           parameters: [
             {
               name: "courseId",
@@ -1285,6 +1296,7 @@ const swaggerOptions = {
         put: {
           tags: ["Certificate"],
           summary: "Update certificate",
+          security: [{ bearerAuth: [] }],
           parameters: [
             {
               name: "id",

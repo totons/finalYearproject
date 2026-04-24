@@ -88,13 +88,14 @@ const upload = multer({
   },
 });
 
-router.post("/:courseId/add-class", addClass);
+router.post("/:courseId/add-class",isAuthenticated, addClass);
 
-router.get("/:courseId/classes", getClasses);
+router.get("/:courseId/classes",isAuthenticated, getClasses);
 
 router.post(
   "/:courseId/add-assignment",
   upload.single("file"),
+    isAuthenticated,
   addAssignment
 );
 
@@ -105,15 +106,17 @@ router.post(
   submitAssignment
 );
 
-router.get("/:courseId/assignments", getAssignments);
+router.get("/:courseId/assignments", isAuthenticated, getAssignments);
 
 router.patch(
   "/assignments/submit-mark/:submissionId/:studentId",
+  isAuthenticated,
   submitMark
 );
 
 router.patch(
   "/assignments/:assignmentId/submissions/:submissionId/review",
+  isAuthenticated,
   async (req, res) => {
     try {
       const { assignmentId, submissionId } = req.params;

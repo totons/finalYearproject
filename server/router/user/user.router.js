@@ -25,7 +25,7 @@ router.post('/course', isAuthenticated, isInstruct)
 
 
 
-router.get('/:studentId/:courseId', getSingleUserById);
+router.get('/:studentId/:courseId', isAuthenticated, getSingleUserById);
 
 
 

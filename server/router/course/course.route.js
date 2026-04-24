@@ -44,9 +44,9 @@ router.get('/:courseId', getCourseById);
 router.put('/:courseId',upload.single("imagess"),isAuthenticated,isInstruct ,updateCourse);
 
 router.delete('/:courseId',isAuthenticated,isInstruct ,deleteCourse);
-router.get('/courses/:courseId/statistics', getCourseStatistics);
-router.post('/:courseId', addOrUpdateStudentMark); // Add or update
-router.get('/:courseId/:studentId', getStudentMarkById);
+router.get('/courses/:courseId/statistics', isAuthenticated, getCourseStatistics);
+router.post('/:courseId', isAuthenticated, addOrUpdateStudentMark); // Add or update
+router.get('/:courseId/:studentId', isAuthenticated,  getStudentMarkById);
 
 
 export default router

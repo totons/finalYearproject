@@ -7,14 +7,15 @@ import {
     deleteCertificate
 } from './Certificate.controller.js';
 import { upload } from '../../midelware/ImageUplode.js';
+import { isAuthenticated } from '../../midelware/user.auth.js';
 
 const router = express.Router();
 
 // Routes
-router.post('/', upload.single("image"), createCertificate); // Create a certificate
-router.get('/', getAllCertificates); // Get all certificates
-router.get('/certificates/:courseId/:userId', getCertificateByCourseAndUser); // Get a certificate by ID
-router.put('/:id', updateCertificate); // Update a certificate
-router.delete('/:id', deleteCertificate); // Delete a certificate
+router.post('/', upload.single("image"), isAuthenticated, createCertificate); // Create a certificate
+router.get('/',isAuthenticated, getAllCertificates); // Get all certificates
+router.get('/certificates/:courseId/:userId',   isAuthenticated, getCertificateByCourseAndUser); // Get a certificate by ID
+router.put('/:id',  isAuthenticated, updateCertificate); // Update a certificate
+router.delete('/:id', isAuthenticated, deleteCertificate); // Delete a certificate
 
 export default router;

@@ -2036,6 +2036,26 @@ const ShowAssignment = () => {
     Number(writtenMark || 0) +
     Number(attendanceMark || 0);
 
+const getBangladeshUniversityGrade = (mark) => {
+  const m = Number(mark || 0);
+
+  if (m >= 80) return "A+";
+  if (m >= 75) return "A";
+  if (m >= 70) return "A-";
+  if (m >= 65) return "B+";
+  if (m >= 60) return "B";
+  if (m >= 55) return "B-";
+  if (m >= 50) return "C+";
+  if (m >= 45) return "C";
+  if (m >= 40) return "D";
+  return "F";
+};
+
+const shouldShowCourseGrade =
+  Number(writtenMark || 0) !== 0 && Number(attendanceMark || 0) !== 0;
+
+const courseGrade = getBangladeshUniversityGrade(totalCourseMarks);
+    
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -2071,9 +2091,10 @@ const ShowAssignment = () => {
           <div className="flex flex-col items-start sm:items-end gap-1.5">
             <span className="text-[11px] sm:text-sm text-gray-500">
               Total Course Marks:{" "}
-              <span className="font-semibold text-gray-800">
-                {totalCourseMarks.toFixed(2)} / 100
-              </span>
+<span className="font-semibold text-gray-800">
+  {totalCourseMarks.toFixed(2)} / 100
+  {shouldShowCourseGrade && ` Grade: ${courseGrade}`}
+</span>
             </span>
           </div>
         </div>
@@ -2347,7 +2368,12 @@ const ShowAssignment = () => {
               <strong>Attendance Mark:</strong> {attendanceMark}
             </div>
             <div className="pt-2 mt-2 border-t border-gray-200 text-base sm:text-lg font-bold">
-              <span>Total Marks for Course: {totalCourseMarks.toFixed(2)}</span>
+              {/* <span>Total Marks for Course: {totalCourseMarks.toFixed(2)}</span> */}
+
+              <span>
+  Total Marks for Course: {totalCourseMarks.toFixed(2)}
+  {shouldShowCourseGrade && ` Grade: ${courseGrade}`}
+</span>
             </div>
           </div>
         </div>
